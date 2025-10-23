@@ -2,12 +2,14 @@
  * Radioactive Froggies - A puzzle game about finding radioactive frogs
  */
 
+(function(isNode) {
+
 // Import SeededRandom - works in both Node and browser
 let SeededRandom;
-if (typeof require !== 'undefined' && typeof module !== 'undefined') {
+if (isNode) {
   // Node.js environment (for tests)
   SeededRandom = require('./seededRandom.js');
-} else if (typeof window !== 'undefined' && window.SeededRandom) {
+} else {
   // Browser environment
   SeededRandom = window.SeededRandom;
 }
@@ -305,10 +307,11 @@ class RadioactiveFroggies {
   }
 }
 
-// Export for Node.js (testing) and browser
-if (typeof module !== 'undefined' && module.exports) {
+// Export for Node.js or browser
+if (isNode) {
   module.exports = RadioactiveFroggies;
-}
-if (typeof window !== 'undefined') {
+} else {
   window.RadioactiveFroggies = RadioactiveFroggies;
 }
+
+})(typeof module !== 'undefined' && typeof module.exports !== 'undefined' && typeof require === 'function');

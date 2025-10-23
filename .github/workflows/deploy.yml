@@ -36,6 +36,21 @@ jobs:
       - name: Run tests
         run: npm test
 
+      - name: Notify test failure
+        if: failure()
+        run: |
+          curl -H "Title: ☠️ Radioactive Froggies Deploy Failed" \
+               -H "Tags: warning,x" \
+               -H "Priority: high" \
+               -d "Tests failed - deployment blocked!
+
+          Commit: ${{ github.event.head_commit.message }}
+
+          By: ${{ github.event.head_commit.author.name }}
+
+          Check logs: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" \
+               https://ntfy.sh/radioactive-froggies
+
   # Deploy job - only runs if tests pass
   deploy:
     needs: test
@@ -59,3 +74,19 @@ jobs:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
+
+      - name: Send notification to ntfy.sh
+        if: success()
+        run: |
+          curl -H "Title: 🐸☢️ Radioactive Froggies Updated!" \
+               -H "Tags: frog,video_game,rocket" \
+               -H "Priority: default" \
+               -H "Actions: view, Open Game, ${{ steps.deployment.outputs.page_url }}" \
+               -d "New deployment successful!
+
+          Commit: ${{ github.event.head_commit.message }}
+
+          By: ${{ github.event.head_commit.author.name }}
+
+          Play now: ${{ steps.deployment.outputs.page_url }}" \
+               https://ntfy.sh/radioactive-froggies

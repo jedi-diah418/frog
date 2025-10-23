@@ -3,6 +3,8 @@
  * Uses a simple LCG (Linear Congruential Generator) for deterministic randomness
  */
 
+(function(isNode) {
+
 class SeededRandom {
   constructor(seed) {
     this.seed = seed % 2147483647;
@@ -44,10 +46,11 @@ class SeededRandom {
   }
 }
 
-// Export for Node.js (testing) and browser
-if (typeof module !== 'undefined' && module.exports) {
+// Export for Node.js or browser
+if (isNode) {
   module.exports = SeededRandom;
-}
-if (typeof window !== 'undefined') {
+} else {
   window.SeededRandom = SeededRandom;
 }
+
+})(typeof module !== 'undefined' && typeof module.exports !== 'undefined' && typeof require === 'function');
