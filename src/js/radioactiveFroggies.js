@@ -7,9 +7,14 @@ let SeededRandom;
 if (typeof require !== 'undefined' && typeof module !== 'undefined') {
   // Node.js environment (for tests)
   SeededRandom = require('./seededRandom.js');
-} else if (typeof window !== 'undefined' && window.SeededRandom) {
+} else if (typeof window !== 'undefined') {
   // Browser environment
   SeededRandom = window.SeededRandom;
+  console.log('Loading RadioactiveFroggies in browser, SeededRandom:', typeof SeededRandom);
+}
+
+if (!SeededRandom) {
+  console.error('SeededRandom not available!');
 }
 
 class RadioactiveFroggies {

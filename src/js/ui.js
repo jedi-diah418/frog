@@ -20,28 +20,53 @@ class GameUI {
    * Initialize the game and UI
    */
   init() {
-    // Get seed from URL parameter or generate new one
-    const urlParams = new URLSearchParams(window.location.search);
-    const seed = urlParams.get('seed') ? parseInt(urlParams.get('seed')) : null;
+    try {
+      console.log('Initializing game UI...');
 
-    // Create game instance
-    this.game = new RadioactiveFroggies(seed);
+      // Get seed from URL parameter or generate new one
+      const urlParams = new URLSearchParams(window.location.search);
+      const seed = urlParams.get('seed') ? parseInt(urlParams.get('seed')) : null;
 
-    // Get DOM elements
-    this.gridElement = document.getElementById('game-grid');
+      console.log('Seed:', seed);
+      console.log('SeededRandom available:', typeof SeededRandom);
+      console.log('RadioactiveFroggies available:', typeof RadioactiveFroggies);
 
-    // Set up event listeners
-    this.setupEventListeners();
+      // Create game instance
+      this.game = new RadioactiveFroggies(seed);
+      console.log('Game instance created:', this.game);
 
-    // Create grid
-    this.createGrid();
+      // Get DOM elements
+      this.gridElement = document.getElementById('game-grid');
+      console.log('Grid element:', this.gridElement);
 
-    // Initial UI update
-    this.updateUI();
+      // Set up event listeners
+      this.setupEventListeners();
+      console.log('Event listeners set up');
 
-    // Make game globally available for debugging
-    window.radioactiveFroggies = this.game;
-    window.gameUI = this;
+      // Create grid
+      this.createGrid();
+      console.log('Grid created with', this.tiles.length, 'tiles');
+
+      // Initial UI update
+      this.updateUI();
+      console.log('UI updated');
+
+      // Make game globally available for debugging
+      window.radioactiveFroggies = this.game;
+      window.gameUI = this;
+
+      console.log('Game initialization complete!');
+    } catch (error) {
+      console.error('Error initializing game:', error);
+      console.error('Stack:', error.stack);
+
+      // Show error to user
+      const messageEl = document.getElementById('message');
+      if (messageEl) {
+        messageEl.textContent = 'Error loading game: ' + error.message;
+        messageEl.className = 'danger';
+      }
+    }
   }
 
   /**

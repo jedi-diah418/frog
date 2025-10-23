@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Debug Test</title>
+</head>
+<body>
+  <h1>Debug Console</h1>
+  <div id="output"></div>
+
+  <script src="src/js/seededRandom.js"></script>
+  <script src="src/js/radioactiveFroggies.js"></script>
+  <script src="src/js/ui.js"></script>
+
+  <script>
+    const output = document.getElementById('output');
+
+    function log(message) {
+      const p = document.createElement('p');
+      p.textContent = message;
+      output.appendChild(p);
+      console.log(message);
+    }
+
+    // Check if classes are loaded
+    log('SeededRandom available: ' + (typeof SeededRandom !== 'undefined'));
+    log('RadioactiveFroggies available: ' + (typeof RadioactiveFroggies !== 'undefined'));
+    log('GameUI available: ' + (typeof GameUI !== 'undefined'));
+    log('window.SeededRandom: ' + (typeof window.SeededRandom !== 'undefined'));
+    log('window.RadioactiveFroggies: ' + (typeof window.RadioactiveFroggies !== 'undefined'));
+
+    // Try to create instances
+    try {
+      const rng = new SeededRandom(123);
+      log('✓ SeededRandom instantiated');
+      log('  Random number: ' + rng.next());
+    } catch(e) {
+      log('✗ SeededRandom error: ' + e.message);
+    }
+
+    try {
+      const game = new RadioactiveFroggies(456);
+      log('✓ RadioactiveFroggies instantiated');
+      log('  Seed: ' + game.seed);
+      log('  Frogs: ' + game.frogs.length);
+    } catch(e) {
+      log('✗ RadioactiveFroggies error: ' + e.message);
+    }
+
+    // Check if gameUI initialized
+    setTimeout(() => {
+      log('gameUI exists: ' + (typeof gameUI !== 'undefined'));
+      if (typeof gameUI !== 'undefined') {
+        log('gameUI.game exists: ' + (gameUI.game !== null));
+        log('Grid element exists: ' + (gameUI.gridElement !== null));
+        log('Number of tiles: ' + gameUI.tiles.length);
+      }
+    }, 100);
+  </script>
+</body>
+</html>
