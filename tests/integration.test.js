@@ -57,6 +57,7 @@ describe('Browser Integration', () => {
             <button id="reset-button" class="button">RESET</button>
             <button id="new-game-button" class="button primary">NEW GAME</button>
             <button id="share-button" class="button">SHARE</button>
+            <button id="debug-button" class="button">SHOW FROGS</button>
           </div>
           <div id="seed-info">
             Level Seed: <span id="seed-value">000000</span>
