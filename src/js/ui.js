@@ -132,6 +132,9 @@ class GameUI {
         setTimeout(() => {
           tile.element.classList.remove('just-probed');
         }, 600);
+
+        // Show radiation direction indicators for surrounding tiles
+        this.showRadiationIndicators(x, y);
       }
     }
 
@@ -177,6 +180,81 @@ class GameUI {
       const tile = this.tiles.find(t => t.x === frog.x && t.y === frog.y);
       if (tile && !tile.element.classList.contains('caught')) {
         tile.element.classList.add('has-frog');
+      }
+    });
+  }
+
+  /**
+   * Show radiation indicators on surrounding tiles
+   */
+  showRadiationIndicators(probeX, probeY) {
+    // Define all 8 surrounding directions plus orthogonal distance-2 tiles
+    const directions = [
+      // Adjacent tiles (distance 1)
+      { dx: -1, dy: 0 },  // left
+      { dx: 1, dy: 0 },   // right
+      { dx: 0, dy: -1 },  // up
+      { dx: 0, dy: 1 },   // down
+      { dx: -1, dy: -1 }, // up-left
+      { dx: 1, dy: -1 },  // up-right
+      { dx: -1, dy: 1 },  // down-left
+      { dx: 1, dy: 1 },   // down-right
+      // Distance 2 orthogonal (for better directional indication)
+      { dx: -2, dy: 0 },  // far left
+      { dx: 2, dy: 0 },   // far right
+      { dx: 0, dy: -2 },  // far up
+      { dx: 0, dy: 2 }    // far down
+    ];
+
+    directions.forEach(({ dx, dy }, index) => {
+      const x = probeX + dx;
+      const y = probeY + dy;
+
+      // Check if position is valid
+      if (x < 0 || x >= this.game.GRID_SIZE || y < 0 || y >= this.game.GRID_SIZE) {
+        return;
+      }
+
+      // Find the tile
+      const tile = this.tiles.find(t => t.x === x && t.y === y);
+      if (!tile || tile.element.classList.contains('caught')) {
+        return;
+      }
+
+      // Calculate radiation at this position
+      const radiation = this.game.calculateRadiation(x, y);
+
+      if (radiation > 0) {
+        // Calculate normalized radiation for this tile
+        const normalized = Math.min(radiation / this.game.MAX_RADIATION, 1);
+
+        // Get color based on radiation intensity
+        const color = this.getRadiationColor(normalized);
+
+        // Apply visual indicator with delay based on distance
+        const distance = Math.abs(dx) + Math.abs(dy);
+        const delay = distance * 50; // 50ms per tile distance for ripple effect
+
+        setTimeout(() => {
+          // Store original background
+          const originalBg = tile.element.style.backgroundColor;
+          const originalBorder = tile.element.style.borderColor;
+          const originalShadow = tile.element.style.boxShadow;
+
+          // Apply radiation color
+          tile.element.style.backgroundColor = color;
+          tile.element.style.borderColor = color;
+          tile.element.style.boxShadow = `0 0 10px ${color}`;
+          tile.element.classList.add('radiation-indicator');
+
+          // Remove animation and restore after animation completes
+          setTimeout(() => {
+            tile.element.classList.remove('radiation-indicator');
+            tile.element.style.backgroundColor = originalBg;
+            tile.element.style.borderColor = originalBorder;
+            tile.element.style.boxShadow = originalShadow;
+          }, 800);
+        }, delay);
       }
     });
   }
