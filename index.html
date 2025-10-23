@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="description" content="A fun browser-based frog-themed game optimized for mobile devices">
+  <meta name="theme-color" content="#4CAF50">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>Frog Game - Hop Along!</title>
+  <link rel="stylesheet" href="src/css/style.css">
+</head>
+<body>
+  <div id="game-container">
+    <h1>Frog Game</h1>
+    <div id="frog-display">🐸</div>
+    <div id="message" class="message">Click the frog to make it hop!</div>
+    <button id="reset-button" class="button">Reset Game</button>
+  </div>
+
+  <script src="src/js/game.js"></script>
+  <script>
+    // Initialize game when DOM is ready
+    document.addEventListener('DOMContentLoaded', () => {
+      const game = new FrogGame();
+      game.init();
+
+      // Make game globally available for debugging
+      window.frogGame = game;
+    });
+  </script>
+</body>
+</html>

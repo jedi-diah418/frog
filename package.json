@@ -1,0 +1,26 @@
+{
+  "name": "frog-game",
+  "version": "1.0.0",
+  "description": "A browser-based frog-themed game optimized for mobile devices",
+  "main": "index.html",
+  "scripts": {
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "start": "npx serve .",
+    "build": "echo 'No build step required for static site'"
+  },
+  "keywords": [
+    "game",
+    "frog",
+    "mobile",
+    "browser"
+  ],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/jest": "^29.5.11",
+    "jest": "^29.7.0",
+    "jest-environment-jsdom": "^29.7.0"
+  }
+}

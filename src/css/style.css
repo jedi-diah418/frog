@@ -1,0 +1,163 @@
+/* Reset and base styles */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+:root {
+  --frog-green: #4CAF50;
+  --frog-dark-green: #2E7D32;
+  --lily-pad: #81C784;
+  --water-blue: #64B5F6;
+  --bg-color: #E3F2FD;
+}
+
+body {
+  font-family: 'Arial', sans-serif;
+  background: linear-gradient(to bottom, var(--bg-color), var(--water-blue));
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  overflow-x: hidden;
+  /* Prevent text selection for game */
+  -webkit-user-select: none;
+  user-select: none;
+  /* Prevent pull-to-refresh on mobile */
+  overscroll-behavior: none;
+  /* Smooth scrolling disabled for game */
+  touch-action: manipulation;
+}
+
+#game-container {
+  max-width: 800px;
+  width: 100%;
+  background: white;
+  border-radius: 20px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  padding: 30px;
+  text-align: center;
+  /* Prevent double-tap zoom on mobile */
+  touch-action: manipulation;
+}
+
+h1 {
+  color: var(--frog-dark-green);
+  font-size: 2.5rem;
+  margin-bottom: 20px;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+#frog-display {
+  font-size: 8rem;
+  margin: 30px 0;
+  animation: hop 2s ease-in-out infinite;
+  cursor: pointer;
+  transition: transform 0.1s;
+}
+
+#frog-display:active {
+  transform: scale(0.95);
+}
+
+@keyframes hop {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-20px);
+  }
+}
+
+.message {
+  font-size: 1.2rem;
+  color: var(--frog-dark-green);
+  margin: 20px 0;
+  min-height: 30px;
+}
+
+.button {
+  background: var(--frog-green);
+  color: white;
+  border: none;
+  padding: 15px 30px;
+  font-size: 1.1rem;
+  border-radius: 10px;
+  cursor: pointer;
+  margin: 10px;
+  transition: background 0.3s, transform 0.1s;
+  /* Better touch target size for mobile */
+  min-width: 120px;
+  min-height: 48px;
+}
+
+.button:hover {
+  background: var(--frog-dark-green);
+}
+
+.button:active {
+  transform: scale(0.95);
+}
+
+/* Mobile optimizations */
+@media (max-width: 600px) {
+  body {
+    padding: 10px;
+  }
+
+  #game-container {
+    padding: 20px;
+    border-radius: 15px;
+  }
+
+  h1 {
+    font-size: 2rem;
+  }
+
+  #frog-display {
+    font-size: 6rem;
+  }
+
+  .message {
+    font-size: 1rem;
+  }
+
+  .button {
+    width: 100%;
+    margin: 5px 0;
+  }
+}
+
+/* Landscape mobile optimization */
+@media (max-height: 600px) and (orientation: landscape) {
+  body {
+    padding: 10px;
+  }
+
+  #game-container {
+    padding: 15px;
+  }
+
+  h1 {
+    font-size: 1.5rem;
+    margin-bottom: 10px;
+  }
+
+  #frog-display {
+    font-size: 4rem;
+    margin: 15px 0;
+  }
+
+  .message {
+    font-size: 0.9rem;
+    margin: 10px 0;
+  }
+}
+
+/* Remove tap highlight on mobile */
+* {
+  -webkit-tap-highlight-color: transparent;
+}
