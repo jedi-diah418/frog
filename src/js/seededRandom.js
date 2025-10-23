@@ -44,7 +44,10 @@ class SeededRandom {
   }
 }
 
-// Export for testing
+// Export for Node.js (testing) and browser
 if (typeof module !== 'undefined' && module.exports) {
   module.exports = SeededRandom;
+}
+if (typeof window !== 'undefined') {
+  window.SeededRandom = SeededRandom;
 }
