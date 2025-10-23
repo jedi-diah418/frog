@@ -196,15 +196,15 @@ describe('RadioactiveFroggies', () => {
       expect(game.isProbed(3, 3)).toBe(false);
     });
 
-    test('should reject already probed positions', () => {
+    test('should allow re-probing positions', () => {
       const game = new RadioactiveFroggies(12345);
       game.frogs = [{ x: 0, y: 0 }];
 
       game.probe(5, 5);
       const result = game.probe(5, 5);
 
-      expect(result.valid).toBe(false);
-      expect(game.moves).toBe(1); // Should not increment
+      expect(result.valid).toBe(true);
+      expect(game.moves).toBe(2); // Should increment on re-probe
     });
 
     test('should return radiation level on miss', () => {
