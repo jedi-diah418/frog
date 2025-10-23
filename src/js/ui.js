@@ -7,6 +7,7 @@ class GameUI {
     this.game = null;
     this.gridElement = null;
     this.tiles = [];
+    this.debugMode = false; // Show frog positions
 
     // Initialize when DOM is ready
     if (document.readyState === 'loading') {
@@ -74,6 +75,10 @@ class GameUI {
       this.newGame();
       this.hideGameOver();
     });
+
+    document.getElementById('debug-button').addEventListener('click', () => {
+      this.toggleDebugMode();
+    });
   }
 
   /**
@@ -123,10 +128,50 @@ class GameUI {
       }
     }
 
+    // Update frog display (frogs may have hopped)
+    this.updateFrogDisplay();
+
     // Show game over if needed
     if (result.gameWon || result.gameOver) {
       setTimeout(() => this.showGameOver(), 500);
     }
+  }
+
+  /**
+   * Toggle debug mode to show/hide frog positions
+   */
+  toggleDebugMode() {
+    this.debugMode = !this.debugMode;
+    const button = document.getElementById('debug-button');
+    button.textContent = this.debugMode ? 'HIDE FROGS' : 'SHOW FROGS';
+    button.classList.toggle('active', this.debugMode);
+    this.updateFrogDisplay();
+  }
+
+  /**
+   * Update the visual display of frog positions
+   */
+  updateFrogDisplay() {
+    if (!this.debugMode) {
+      // Remove all frog indicators
+      this.tiles.forEach(tile => {
+        tile.element.classList.remove('has-frog');
+      });
+      return;
+    }
+
+    // First, remove all frog indicators
+    this.tiles.forEach(tile => {
+      tile.element.classList.remove('has-frog');
+    });
+
+    // Then add indicators for current frog positions
+    this.game.frogs.forEach(frog => {
+      const tile = this.tiles.find(t => t.x === frog.x && t.y === frog.y);
+      if (tile && !tile.element.classList.contains('caught')) {
+        tile.element.classList.add('has-frog');
+      }
+    });
   }
 
   /**

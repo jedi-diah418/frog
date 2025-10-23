@@ -230,6 +230,25 @@ h1 {
   100% { transform: scale(1) rotate(0deg); }
 }
 
+/* Debug mode - show frog positions */
+.tile.has-frog {
+  background: rgba(255, 0, 0, 0.3);
+  border-color: var(--radiation-red);
+  box-shadow: 0 0 10px var(--radiation-red);
+}
+
+.tile.has-frog::after {
+  content: '🐸';
+  font-size: 1.2rem;
+  opacity: 0.7;
+}
+
+.button.active {
+  background: var(--radiation-yellow);
+  color: var(--night-sky);
+  border-color: var(--radiation-yellow);
+}
+
 /* Message area */
 #message {
   text-align: center;
