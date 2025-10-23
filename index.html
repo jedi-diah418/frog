@@ -3,31 +3,78 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <meta name="description" content="A fun browser-based frog-themed game optimized for mobile devices">
-  <meta name="theme-color" content="#4CAF50">
+  <meta name="description" content="Hunt radioactive frogs in a nighttime forest using radiation detection">
+  <meta name="theme-color" content="#0a1128">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <title>Frog Game - Hop Along!</title>
+  <title>Radioactive Froggies - Nuclear Forest Adventure</title>
   <link rel="stylesheet" href="src/css/style.css">
 </head>
 <body>
   <div id="game-container">
-    <h1>Frog Game</h1>
-    <div id="frog-display">🐸</div>
-    <div id="message" class="message">Click the frog to make it hop!</div>
-    <button id="reset-button" class="button">Reset Game</button>
+    <h1>☢️ RADIOACTIVE FROGGIES ☢️</h1>
+
+    <!-- Game Info Panel -->
+    <div id="game-info">
+      <div class="info-item">
+        <div class="info-label">CAUGHT</div>
+        <div class="info-value" id="caught-count">0/5</div>
+      </div>
+      <div class="info-item">
+        <div class="info-label">MOVES</div>
+        <div class="info-value" id="move-count">0</div>
+      </div>
+      <div class="info-item">
+        <div class="info-label">REMAINING</div>
+        <div class="info-value" id="moves-remaining">50</div>
+      </div>
+    </div>
+
+    <!-- Radiation Meter -->
+    <div id="radiation-meter">
+      <h3>RADIATION DETECTOR</h3>
+      <div class="meter-container">
+        <div class="meter-fill" id="meter-fill" style="width: 0%; background-color: #39ff14;"></div>
+        <div class="meter-text" id="meter-text">STANDBY</div>
+      </div>
+      <div class="trend-indicator" id="trend-indicator"></div>
+    </div>
+
+    <!-- Game Grid -->
+    <div id="game-grid"></div>
+
+    <!-- Message Area -->
+    <div id="message">Probe the forest to detect radioactive frogs. They hop when scared!</div>
+
+    <!-- Buttons -->
+    <div class="button-container">
+      <button id="reset-button" class="button">RESET</button>
+      <button id="new-game-button" class="button primary">NEW GAME</button>
+      <button id="share-button" class="button">SHARE</button>
+    </div>
+
+    <!-- Seed Info -->
+    <div id="seed-info">
+      Level Seed: <span id="seed-value">000000</span>
+      <br>
+      <small>Click seed to copy shareable URL</small>
+    </div>
   </div>
 
-  <script src="src/js/game.js"></script>
-  <script>
-    // Initialize game when DOM is ready
-    document.addEventListener('DOMContentLoaded', () => {
-      const game = new FrogGame();
-      game.init();
+  <!-- Game Over Overlay -->
+  <div id="game-over-overlay">
+    <div class="game-over-content" id="game-over-content">
+      <h2 id="game-over-title">MISSION COMPLETE</h2>
+      <div class="game-over-stats" id="game-over-stats"></div>
+      <div class="button-container">
+        <button id="retry-button" class="button primary">RETRY LEVEL</button>
+        <button id="next-level-button" class="button">NEW LEVEL</button>
+      </div>
+    </div>
+  </div>
 
-      // Make game globally available for debugging
-      window.frogGame = game;
-    });
-  </script>
+  <script src="src/js/seededRandom.js"></script>
+  <script src="src/js/radioactiveFroggies.js"></script>
+  <script src="src/js/ui.js"></script>
 </body>
 </html>
