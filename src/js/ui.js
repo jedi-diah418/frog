@@ -124,7 +124,14 @@ class GameUI {
         tile.element.classList.add('caught');
         tile.element.textContent = '🐸';
       } else {
+        // Add probed marker and pulse animation
         tile.element.classList.add('probed');
+        tile.element.classList.add('just-probed');
+
+        // Remove pulse animation after it completes
+        setTimeout(() => {
+          tile.element.classList.remove('just-probed');
+        }, 600);
       }
     }
 

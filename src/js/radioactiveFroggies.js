@@ -22,7 +22,7 @@ class RadioactiveFroggies {
     this.MAX_MOVES = 50;
     this.RADIATION_RANGE = 5;
     this.FROG_SCARE_RADIUS = 2;
-    this.MAX_RADIATION = 30; // For normalization
+    this.MAX_RADIATION = 18; // For normalization - being near 3 frogs should nearly fill meter
 
     // Game state
     this.seed = seed || this.generateSeed();
@@ -127,7 +127,7 @@ class RadioactiveFroggies {
 
       // If probe is within scare radius, frog hops away
       if (distance > 0 && distance <= this.FROG_SCARE_RADIUS) {
-        const hopDistance = this.rng.nextInt(2, 3);
+        const hopDistance = 1; // Frogs only hop 1 tile at a time
         let newX = frog.x;
         let newY = frog.y;
         let attempts = 0;
@@ -135,7 +135,7 @@ class RadioactiveFroggies {
 
         // Try to find a valid hop position
         while (attempts < maxAttempts) {
-          // Random direction
+          // Random direction (one tile in any direction)
           const dx = this.rng.nextInt(-hopDistance, hopDistance);
           const dy = hopDistance - Math.abs(dx);
           const dySign = this.rng.nextInt(0, 1) === 0 ? -1 : 1;
@@ -184,10 +184,7 @@ class RadioactiveFroggies {
       return { valid: false, message: 'Game is over' };
     }
 
-    // Check if already probed
-    if (this.isProbed(x, y)) {
-      return { valid: false, message: 'Already probed' };
-    }
+    // Allow re-probing tiles (no longer blocking already probed tiles)
 
     // Check if frog is here
     const frogIndex = this.isFrogAt(x, y);
