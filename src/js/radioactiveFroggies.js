@@ -143,9 +143,10 @@ class RadioactiveFroggies {
           newX = frog.x + dx;
           newY = frog.y + (dy * dySign);
 
-          // Check if position is valid and not occupied
+          // Check if position is valid, not occupied, and not the just-probed location
           if (newX >= 0 && newX < this.GRID_SIZE &&
               newY >= 0 && newY < this.GRID_SIZE &&
+              !(newX === probeX && newY === probeY) &&
               !newFrogPositions.some(f => f.x === newX && f.y === newY) &&
               !this.frogs.some(f => f.x === newX && f.y === newY && f !== frog)) {
             break;
