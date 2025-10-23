@@ -11,9 +11,6 @@
   <link rel="stylesheet" href="src/css/style.css">
 </head>
 <body>
-  <!-- Debug Panel -->
-  <div id="debug-panel" style="position: fixed; top: 0; left: 0; right: 0; background: #000; color: #0f0; padding: 10px; font-family: monospace; font-size: 10px; max-height: 150px; overflow-y: auto; z-index: 9999; display: none;"></div>
-
   <div id="game-container">
     <h1>☢️ RADIOACTIVE FROGGIES ☢️</h1>
 
@@ -75,37 +72,6 @@
       </div>
     </div>
   </div>
-
-  <script>
-    // Debug logging to visible panel
-    (function() {
-      const debugPanel = document.getElementById('debug-panel');
-      debugPanel.style.display = 'block';
-
-      const originalLog = console.log;
-      const originalError = console.error;
-
-      function addToPanel(message, isError) {
-        const line = document.createElement('div');
-        line.textContent = (isError ? 'ERROR: ' : '') + message;
-        if (isError) line.style.color = '#f00';
-        debugPanel.appendChild(line);
-        debugPanel.scrollTop = debugPanel.scrollHeight;
-      }
-
-      console.log = function(...args) {
-        originalLog.apply(console, args);
-        addToPanel(args.join(' '), false);
-      };
-
-      console.error = function(...args) {
-        originalError.apply(console, args);
-        addToPanel(args.join(' '), true);
-      };
-
-      console.log('Debug panel active');
-    })();
-  </script>
 
   <script src="src/js/seededRandom.js"></script>
   <script src="src/js/radioactiveFroggies.js"></script>

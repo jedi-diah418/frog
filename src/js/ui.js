@@ -20,53 +20,28 @@ class GameUI {
    * Initialize the game and UI
    */
   init() {
-    try {
-      console.log('Initializing game UI...');
+    // Get seed from URL parameter or generate new one
+    const urlParams = new URLSearchParams(window.location.search);
+    const seed = urlParams.get('seed') ? parseInt(urlParams.get('seed')) : null;
 
-      // Get seed from URL parameter or generate new one
-      const urlParams = new URLSearchParams(window.location.search);
-      const seed = urlParams.get('seed') ? parseInt(urlParams.get('seed')) : null;
+    // Create game instance
+    this.game = new RadioactiveFroggies(seed);
 
-      console.log('Seed:', seed);
-      console.log('SeededRandom available:', typeof SeededRandom);
-      console.log('RadioactiveFroggies available:', typeof RadioactiveFroggies);
+    // Get DOM elements
+    this.gridElement = document.getElementById('game-grid');
 
-      // Create game instance
-      this.game = new RadioactiveFroggies(seed);
-      console.log('Game instance created:', this.game);
+    // Set up event listeners
+    this.setupEventListeners();
 
-      // Get DOM elements
-      this.gridElement = document.getElementById('game-grid');
-      console.log('Grid element:', this.gridElement);
+    // Create grid
+    this.createGrid();
 
-      // Set up event listeners
-      this.setupEventListeners();
-      console.log('Event listeners set up');
+    // Initial UI update
+    this.updateUI();
 
-      // Create grid
-      this.createGrid();
-      console.log('Grid created with', this.tiles.length, 'tiles');
-
-      // Initial UI update
-      this.updateUI();
-      console.log('UI updated');
-
-      // Make game globally available for debugging
-      window.radioactiveFroggies = this.game;
-      window.gameUI = this;
-
-      console.log('Game initialization complete!');
-    } catch (error) {
-      console.error('Error initializing game:', error);
-      console.error('Stack:', error.stack);
-
-      // Show error to user
-      const messageEl = document.getElementById('message');
-      if (messageEl) {
-        messageEl.textContent = 'Error loading game: ' + error.message;
-        messageEl.className = 'danger';
-      }
-    }
+    // Make game globally available for debugging
+    window.radioactiveFroggies = this.game;
+    window.gameUI = this;
   }
 
   /**
