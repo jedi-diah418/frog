@@ -51,6 +51,15 @@ describe('Browser Integration', () => {
             </div>
             <div class="trend-indicator" id="trend-indicator"></div>
           </div>
+          <div id="powerup-inventory">
+            <h3>POWERUPS</h3>
+            <div id="powerup-list">
+              <div class="powerup-item" id="powerup-radar">
+                <span class="powerup-icon">📡</span>
+                <span class="powerup-count" id="radar-count">0</span>
+              </div>
+            </div>
+          </div>
           <div id="game-grid"></div>
           <div id="message">Test</div>
           <div class="button-container">

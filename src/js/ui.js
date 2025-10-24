@@ -79,6 +79,11 @@ class GameUI {
     document.getElementById('debug-button').addEventListener('click', () => {
       this.toggleDebugMode();
     });
+
+    // Powerup listeners
+    document.getElementById('powerup-radar').addEventListener('click', () => {
+      this.useRadarPowerup();
+    });
   }
 
   /**
@@ -114,15 +119,33 @@ class GameUI {
       return;
     }
 
-    // Update UI
+    // Update UI immediately (move count, etc.)
     this.updateUI();
 
     // Update tile appearance
     const tile = this.tiles.find(t => t.x === x && t.y === y);
     if (tile) {
+      // Remove powerup indicator if it was there
+      if (result.foundPowerup) {
+        tile.element.classList.remove('has-powerup');
+        // Show powerup found message
+        const messageElement = document.getElementById('message');
+        const originalText = messageElement.textContent;
+        const originalClass = messageElement.className;
+        messageElement.textContent = '📡 Found a Sweeping Radar powerup!';
+        messageElement.className = 'success';
+        setTimeout(() => {
+          messageElement.textContent = originalText;
+          messageElement.className = originalClass;
+        }, 2000);
+      }
+
       if (result.caught) {
         tile.element.classList.add('caught');
         tile.element.textContent = '🐸';
+
+        // Update frog display for caught frogs
+        this.updateFrogDisplay();
       } else {
         // Add probed marker and pulse animation
         tile.element.classList.add('probed');
@@ -133,17 +156,22 @@ class GameUI {
           tile.element.classList.remove('just-probed');
         }, 600);
 
-        // Show radiation direction indicators for surrounding tiles
-        this.showRadiationIndicators(x, y);
+        // Show initial radiation (before frogs hopped)
+        this.showRadiationIndicators(x, y, result.initialRadiation, true);
+
+        // After initial animation, show final radiation (after frogs hopped)
+        setTimeout(() => {
+          this.showRadiationIndicators(x, y, result.finalRadiation, false);
+
+          // Update frog display after both animations
+          this.updateFrogDisplay();
+        }, 1000);
       }
     }
 
-    // Update frog display (frogs may have hopped)
-    this.updateFrogDisplay();
-
     // Show game over if needed
     if (result.gameWon || result.gameOver) {
-      setTimeout(() => this.showGameOver(), 500);
+      setTimeout(() => this.showGameOver(), 2000);
     }
   }
 
@@ -187,7 +215,7 @@ class GameUI {
   /**
    * Show radiation indicators on surrounding tiles
    */
-  showRadiationIndicators(probeX, probeY) {
+  showRadiationIndicators(probeX, probeY, centerRadiation, isInitial) {
     // Define all 8 surrounding directions plus orthogonal distance-2 tiles
     const directions = [
       // Adjacent tiles (distance 1)
@@ -247,12 +275,18 @@ class GameUI {
           tile.element.style.boxShadow = `0 0 10px ${color}`;
           tile.element.classList.add('radiation-indicator');
 
+          // Add visual indicator for initial vs final
+          if (isInitial) {
+            tile.element.style.opacity = '0.7';
+          }
+
           // Remove animation and restore after animation completes
           setTimeout(() => {
             tile.element.classList.remove('radiation-indicator');
             tile.element.style.backgroundColor = originalBg;
             tile.element.style.borderColor = originalBorder;
             tile.element.style.boxShadow = originalShadow;
+            tile.element.style.opacity = '';
           }, 800);
         }, delay);
       }
@@ -288,6 +322,9 @@ class GameUI {
 
     // Update message
     this.updateMessage(state);
+
+    // Update powerup display
+    this.updatePowerupDisplay();
   }
 
   /**
@@ -369,6 +406,103 @@ class GameUI {
       messageElement.textContent = 'Probe the forest to detect radioactive frogs. They hop when scared!';
       messageElement.className = '';
     }
+  }
+
+  /**
+   * Update powerup display
+   */
+  updatePowerupDisplay() {
+    const state = this.game.getState();
+    const radarCount = state.powerups.filter(p => p === 'radar').length;
+
+    // Update count
+    document.getElementById('radar-count').textContent = radarCount;
+
+    // Update disabled state
+    const radarElement = document.getElementById('powerup-radar');
+    if (radarCount === 0) {
+      radarElement.classList.add('disabled');
+    } else {
+      radarElement.classList.remove('disabled');
+    }
+
+    // Show/hide powerup on tile
+    this.tiles.forEach(tile => {
+      tile.element.classList.remove('has-powerup');
+    });
+
+    if (this.game.hiddenPowerup) {
+      const powerupTile = this.tiles.find(t =>
+        t.x === this.game.hiddenPowerup.x && t.y === this.game.hiddenPowerup.y
+      );
+      if (powerupTile && !powerupTile.element.classList.contains('probed')) {
+        powerupTile.element.classList.add('has-powerup');
+      }
+    }
+  }
+
+  /**
+   * Use radar powerup
+   */
+  useRadarPowerup() {
+    const result = this.game.usePowerup('radar');
+
+    if (!result.valid) {
+      return;
+    }
+
+    // Disable tile clicks during animation
+    this.gridElement.style.pointerEvents = 'none';
+
+    // Show radar sweep animation on all tiles
+    this.tiles.forEach((tile, index) => {
+      setTimeout(() => {
+        tile.element.classList.add('radar-sweep');
+        setTimeout(() => {
+          tile.element.classList.remove('radar-sweep');
+        }, 500);
+      }, index * 10); // Stagger animation
+    });
+
+    // Reveal frog positions after sweep
+    setTimeout(() => {
+      result.frogPositions.forEach(pos => {
+        const tile = this.tiles.find(t => t.x === pos.x && t.y === pos.y);
+        if (tile) {
+          tile.element.classList.add('has-frog');
+          tile.element.style.background = 'rgba(255, 0, 0, 0.5)';
+        }
+      });
+
+      // Show message
+      const messageElement = document.getElementById('message');
+      messageElement.textContent = '📡 Radar sweep complete! Frogs detected. They\'re hopping away!';
+      messageElement.className = 'warning';
+    }, 1000);
+
+    // Make frogs hop twice
+    setTimeout(() => {
+      this.game.makeAllFrogsHop();
+    }, 1500);
+
+    setTimeout(() => {
+      this.game.makeAllFrogsHop();
+    }, 2000);
+
+    // Clear frog indicators and re-enable clicks
+    setTimeout(() => {
+      this.tiles.forEach(tile => {
+        tile.element.classList.remove('has-frog');
+        tile.element.style.background = '';
+      });
+
+      // Re-enable tile clicks
+      this.gridElement.style.pointerEvents = '';
+
+      // Update UI
+      this.updateUI();
+      this.updateFrogDisplay();
+    }, 2500);
   }
 
   /**

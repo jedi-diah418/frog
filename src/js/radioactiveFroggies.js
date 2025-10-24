@@ -39,8 +39,13 @@ class RadioactiveFroggies {
     this.probed = []; // Array of probed positions
     this.caughtPositions = []; // Array of caught frog positions
 
+    // Powerup system
+    this.powerups = ['radar']; // Start with 1 radar powerup
+    this.hiddenPowerup = null; // Position of hidden powerup
+
     // Initialize game
     this.initializeFrogs();
+    this.initializeHiddenPowerup();
   }
 
   /**
@@ -66,6 +71,27 @@ class RadioactiveFroggies {
     // Shuffle and take first FROG_COUNT positions
     const shuffled = this.rng.shuffle(positions);
     this.frogs = shuffled.slice(0, this.FROG_COUNT);
+  }
+
+  /**
+   * Initialize hidden powerup position
+   */
+  initializeHiddenPowerup() {
+    const positions = [];
+
+    // Generate all possible positions
+    for (let x = 0; x < this.GRID_SIZE; x++) {
+      for (let y = 0; y < this.GRID_SIZE; y++) {
+        // Don't place powerup on frog positions
+        if (!this.frogs.some(f => f.x === x && f.y === y)) {
+          positions.push({ x, y });
+        }
+      }
+    }
+
+    // Shuffle and take first position
+    const shuffled = this.rng.shuffle(positions);
+    this.hiddenPowerup = shuffled[0];
   }
 
   /**
@@ -187,6 +213,14 @@ class RadioactiveFroggies {
 
     // Allow re-probing tiles (no longer blocking already probed tiles)
 
+    // Check if powerup is here
+    let foundPowerup = false;
+    if (this.hiddenPowerup && this.hiddenPowerup.x === x && this.hiddenPowerup.y === y) {
+      this.powerups.push('radar');
+      this.hiddenPowerup = null;
+      foundPowerup = true;
+    }
+
     // Check if frog is here
     const frogIndex = this.isFrogAt(x, y);
 
@@ -212,19 +246,23 @@ class RadioactiveFroggies {
         valid: true,
         caught: true,
         radiation: 0,
+        foundPowerup: foundPowerup,
         message: `Caught a frog! ${this.caughtFrogs}/${this.FROG_COUNT}`,
         gameWon: this.gameWon
       };
     } else {
-      // No frog here, calculate radiation
-      const radiation = this.calculateRadiation(x, y);
+      // No frog here, calculate radiation BEFORE frogs hop
+      const initialRadiation = this.calculateRadiation(x, y);
       this.previousRadiation = this.lastRadiation;
-      this.lastRadiation = radiation;
       this.probed.push({ x, y });
       this.moves++;
 
       // Make nearby frogs hop away
       this.makeFrogsHop(x, y);
+
+      // Calculate radiation AFTER frogs hop
+      const finalRadiation = this.calculateRadiation(x, y);
+      this.lastRadiation = finalRadiation;
 
       // Check lose condition
       if (this.moves >= this.MAX_MOVES) {
@@ -234,11 +272,88 @@ class RadioactiveFroggies {
       return {
         valid: true,
         caught: false,
-        radiation: radiation,
-        message: radiation > 0 ? 'Detecting radiation...' : 'No radiation detected',
+        radiation: finalRadiation,
+        initialRadiation: initialRadiation,
+        finalRadiation: finalRadiation,
+        foundPowerup: foundPowerup,
+        message: finalRadiation > 0 ? 'Detecting radiation...' : 'No radiation detected',
         gameOver: this.gameOver && !this.gameWon
       };
     }
+  }
+
+  /**
+   * Use a powerup
+   */
+  usePowerup(powerupType) {
+    const index = this.powerups.indexOf(powerupType);
+    if (index === -1) {
+      return { valid: false, message: 'Powerup not available' };
+    }
+
+    // Remove powerup from inventory
+    this.powerups.splice(index, 1);
+
+    if (powerupType === 'radar') {
+      return {
+        valid: true,
+        type: 'radar',
+        frogPositions: this.frogs.map(f => ({ x: f.x, y: f.y }))
+      };
+    }
+
+    return { valid: false, message: 'Unknown powerup type' };
+  }
+
+  /**
+   * Make all frogs hop (for radar powerup)
+   */
+  makeAllFrogsHop() {
+    // Make frogs hop twice by calling this twice
+    // Use center of grid as "probe" position so frogs scatter
+    const centerX = Math.floor(this.GRID_SIZE / 2);
+    const centerY = Math.floor(this.GRID_SIZE / 2);
+
+    // Just hop randomly, not based on any particular scare location
+    const newFrogPositions = [];
+
+    for (const frog of this.frogs) {
+      const hopDistance = 1;
+      let newX = frog.x;
+      let newY = frog.y;
+      let attempts = 0;
+      const maxAttempts = 20;
+
+      // Try to find a valid hop position
+      while (attempts < maxAttempts) {
+        const dx = this.rng.nextInt(-hopDistance, hopDistance);
+        const dy = hopDistance - Math.abs(dx);
+        const dySign = this.rng.nextInt(0, 1) === 0 ? -1 : 1;
+
+        newX = frog.x + dx;
+        newY = frog.y + (dy * dySign);
+
+        // Check if position is valid and not occupied
+        if (newX >= 0 && newX < this.GRID_SIZE &&
+            newY >= 0 && newY < this.GRID_SIZE &&
+            !newFrogPositions.some(f => f.x === newX && f.y === newY) &&
+            !this.frogs.some(f => f.x === newX && f.y === newY && f !== frog)) {
+          break;
+        }
+
+        attempts++;
+      }
+
+      // If we couldn't find a valid position, frog stays put
+      if (attempts >= maxAttempts) {
+        newX = frog.x;
+        newY = frog.y;
+      }
+
+      newFrogPositions.push({ x: newX, y: newY });
+    }
+
+    this.frogs = newFrogPositions;
   }
 
   /**
@@ -275,7 +390,9 @@ class RadioactiveFroggies {
       trend: this.getRadiationTrend(),
       gameOver: this.gameOver,
       gameWon: this.gameWon,
-      movesRemaining: this.MAX_MOVES - this.moves
+      movesRemaining: this.MAX_MOVES - this.moves,
+      powerups: this.powerups.slice(), // Return copy of powerups array
+      hasPowerup: this.powerups.length > 0
     };
   }
 
@@ -293,7 +410,10 @@ class RadioactiveFroggies {
     this.frogs = [];
     this.probed = [];
     this.caughtPositions = [];
+    this.powerups = ['radar'];
+    this.hiddenPowerup = null;
     this.initializeFrogs();
+    this.initializeHiddenPowerup();
   }
 
   /**
