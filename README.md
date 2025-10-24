@@ -2,7 +2,7 @@
 
 Hunt radioactive frogs in a nighttime forest using your radiation detector! A puzzle game where you use radiation readings to triangulate and capture escaped radioactive frogs before time runs out.
 
-![Night Forest Theme](https://img.shields.io/badge/theme-nuclear%20forest-green) ![Mobile Optimized](https://img.shields.io/badge/mobile-optimized-blue) ![Tests](https://img.shields.io/badge/tests-88%20passing-brightgreen)
+![Night Forest Theme](https://img.shields.io/badge/theme-nuclear%20forest-green) ![Mobile Optimized](https://img.shields.io/badge/mobile-optimized-blue) ![Tests](https://img.shields.io/badge/tests-124%20passing-brightgreen)
 
 ## Game Overview
 
@@ -11,6 +11,8 @@ In this minesweeper-inspired puzzle game, you must locate and capture 5 radioact
 ### Key Features
 
 - **Radiation Detection System**: Distance-based radiation readings guide you to hidden frogs
+- **Dual Radiation Display**: See radiation before AND after frogs hop to track movement
+- **Powerup System**: Collect and use powerups like the Sweeping Radar to reveal frog locations
 - **Dynamic Frog AI**: Frogs hop away when you probe nearby, adding strategic challenge
 - **Seeded Levels**: Share level codes with friends to compete on the same puzzle
 - **Move Limit**: Catch all frogs within 50 moves or they'll dry up from radiation
@@ -57,7 +59,7 @@ cd frog
 # Install dependencies
 npm install
 
-# Run tests (88 tests)
+# Run tests (124 tests)
 npm test
 
 # Start development server
@@ -72,9 +74,14 @@ Visit `http://localhost:3000` to play locally.
 frog/
 ├── .claude/                    # AI assistant guidelines
 │   └── PROJECT.md             # Development workflow
-├── .github/workflows/         # CI/CD pipelines
-│   ├── test.yml              # Automated testing
-│   └── deploy.yml            # GitHub Pages deployment
+├── .github/                   # GitHub configuration
+│   ├── workflows/             # CI/CD pipelines
+│   │   ├── test.yml          # Automated testing
+│   │   └── deploy.yml        # GitHub Pages deployment
+│   ├── ISSUE_TEMPLATE/       # Issue templates
+│   │   ├── feature_request.md
+│   │   └── bug_report.md
+│   └── pull_request_template.md
 ├── src/
 │   ├── js/
 │   │   ├── seededRandom.js   # Deterministic RNG
@@ -83,12 +90,15 @@ frog/
 │   ├── css/
 │   │   └── style.css         # Night forest theme
 │   └── assets/               # Game assets
-├── tests/                     # Jest test suite (88 tests)
+├── tests/                     # Jest test suite (124 tests)
 │   ├── seededRandom.test.js
 │   ├── radioactiveFroggies.test.js
-│   └── game.test.js
+│   ├── game.test.js
+│   └── integration.test.js
 ├── index.html                 # Main entry point
 ├── package.json              # Dependencies & scripts
+├── TESTING.md                # Testing guide & standards
+├── TODO_TEMPLATE.md          # Feature development template
 └── README.md                 # This file
 ```
 
@@ -96,7 +106,7 @@ frog/
 
 ### Testing
 
-All game mechanics are thoroughly tested with 88 automated tests:
+All game mechanics are thoroughly tested with 124 automated tests:
 
 ```bash
 # Run all tests
@@ -110,13 +120,19 @@ npm run test:coverage
 ```
 
 **Test Coverage:**
-- ✅ Seeded random number generation (17 tests)
+- ✅ Seeded random number generation (19 tests)
 - ✅ Game initialization and state management (8 tests)
 - ✅ Radiation calculation and detection (7 tests)
 - ✅ Frog placement and hopping mechanics (11 tests)
+- ✅ Powerup system (11 tests)
+- ✅ Dual radiation tracking (5 tests)
+- ✅ Frog movement prevention (2 tests)
 - ✅ Win/lose conditions (4 tests)
 - ✅ Edge cases and regression prevention (12 tests)
 - ✅ Legacy game compatibility (24 tests)
+- ✅ UI integration tests (15 tests)
+
+**See [TESTING.md](TESTING.md) for detailed testing guidelines and examples.**
 
 ### Development Workflow
 
@@ -127,6 +143,13 @@ This project follows a strict testing and branching workflow:
 3. **Automated CI**: Tests run automatically on push
 4. **Deploy on Success**: GitHub Pages deploys only when tests pass
 5. **Clean Up**: Delete feature branches after merging
+
+**Development Resources:**
+- 📖 [TESTING.md](TESTING.md) - Comprehensive testing guide
+- 📋 [TODO_TEMPLATE.md](TODO_TEMPLATE.md) - Feature development templates
+- 🐛 [Bug Report Template](.github/ISSUE_TEMPLATE/bug_report.md)
+- ✨ [Feature Request Template](.github/ISSUE_TEMPLATE/feature_request.md)
+- 🔀 [Pull Request Template](.github/pull_request_template.md)
 
 See `.claude/PROJECT.md` for detailed workflow guidelines.
 
@@ -233,21 +256,65 @@ The game auto-deploys to GitHub Pages when you push to `main`:
 
 ## Contributing
 
-1. Create feature branch from main
-2. Write tests for new features
-3. Ensure all 88+ tests pass
-4. Submit changes
-5. Clean up branches after merge
+We welcome contributions! Please follow these steps:
 
-See `.claude/PROJECT.md` for full guidelines.
+### Quick Start
+
+1. **Review Documentation**
+   - Read [TESTING.md](TESTING.md) for testing standards
+   - Check [TODO_TEMPLATE.md](TODO_TEMPLATE.md) for development workflow
+   - Use issue templates for bugs/features
+
+2. **Create Feature Branch**
+   ```bash
+   git checkout -b your-feature-name
+   ```
+
+3. **Follow Development Template**
+   - Use [TODO_TEMPLATE.md](TODO_TEMPLATE.md) to plan your work
+   - Write tests BEFORE or ALONGSIDE implementation
+   - Include unit tests for game logic
+   - Include integration tests for UI changes
+
+4. **Ensure Quality**
+   - All 124+ tests must pass
+   - Add tests for new features
+   - Update documentation
+   - Follow existing code style
+
+5. **Submit Pull Request**
+   - Fill out [PR template](.github/pull_request_template.md)
+   - Include test results
+   - Link related issues
+   - Wait for review
+
+### Testing Requirements
+
+Every new feature MUST include:
+- ✅ Unit tests for game logic
+- ✅ Integration tests for UI
+- ✅ Edge case coverage
+- ✅ Error handling tests
+
+**Example:** Adding a new powerup requires ~8-12 new tests.
+
+See [TESTING.md](TESTING.md) for detailed examples and patterns.
+
+### Code of Conduct
+
+- Be respectful and constructive
+- Test thoroughly before submitting
+- Document complex logic
+- Ask questions in issues/PRs
 
 ## Technical Stack
 
 - **Frontend**: Vanilla JavaScript (ES6+), HTML5, CSS3
-- **Testing**: Jest with jsdom (88 tests)
+- **Testing**: Jest with jsdom (124 tests, 100% critical path coverage)
 - **CI/CD**: GitHub Actions
 - **Deployment**: GitHub Pages
 - **Development**: Node.js 18+
+- **Quality**: Comprehensive test suite, PR templates, issue templates
 
 ## License
 
