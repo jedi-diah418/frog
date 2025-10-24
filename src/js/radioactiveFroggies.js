@@ -216,7 +216,10 @@ class RadioactiveFroggies {
     // Check if powerup is here
     let foundPowerup = false;
     if (this.hiddenPowerup && this.hiddenPowerup.x === x && this.hiddenPowerup.y === y) {
-      this.powerups.push('radar');
+      // Randomly give either radar or mega-probe
+      const powerupTypes = ['radar', 'mega-probe'];
+      const randomType = powerupTypes[Math.floor(this.rng.next() * powerupTypes.length)];
+      this.powerups.push(randomType);
       this.hiddenPowerup = null;
       foundPowerup = true;
     }
@@ -280,6 +283,93 @@ class RadioactiveFroggies {
         gameOver: this.gameOver && !this.gameWon
       };
     }
+  }
+
+  /**
+   * Mega probe - captures frogs in a 3x3 area
+   */
+  megaProbe(x, y) {
+    // Validate position
+    if (x < 0 || x >= this.GRID_SIZE || y < 0 || y >= this.GRID_SIZE) {
+      return { valid: false, message: 'Invalid position' };
+    }
+
+    // Check if game is over
+    if (this.gameOver) {
+      return { valid: false, message: 'Game is over' };
+    }
+
+    // Check if powerup is here (only at center tile)
+    let foundPowerup = false;
+    if (this.hiddenPowerup && this.hiddenPowerup.x === x && this.hiddenPowerup.y === y) {
+      // Randomly give either radar or mega-probe
+      const powerupTypes = ['radar', 'mega-probe'];
+      const randomType = powerupTypes[Math.floor(this.rng.next() * powerupTypes.length)];
+      this.powerups.push(randomType);
+      this.hiddenPowerup = null;
+      foundPowerup = true;
+    }
+
+    // Check for frogs in 3x3 area
+    const caughtFrogs = [];
+    const probedPositions = [];
+
+    for (let dx = -1; dx <= 1; dx++) {
+      for (let dy = -1; dy <= 1; dy++) {
+        const checkX = x + dx;
+        const checkY = y + dy;
+
+        // Skip out of bounds positions
+        if (checkX < 0 || checkX >= this.GRID_SIZE || checkY < 0 || checkY >= this.GRID_SIZE) {
+          continue;
+        }
+
+        // Mark as probed
+        probedPositions.push({ x: checkX, y: checkY });
+
+        // Check for frog
+        const frogIndex = this.isFrogAt(checkX, checkY);
+        if (frogIndex !== -1) {
+          caughtFrogs.push({ x: checkX, y: checkY });
+          this.frogs.splice(frogIndex, 1);
+          this.caughtFrogs++;
+          this.caughtPositions.push({ x: checkX, y: checkY });
+        }
+      }
+    }
+
+    // Add all probed positions
+    probedPositions.forEach(pos => this.probed.push(pos));
+    this.moves++;
+
+    // Store radiation
+    this.previousRadiation = this.lastRadiation;
+    this.lastRadiation = 0;
+
+    // Check win condition
+    if (this.caughtFrogs >= this.FROG_COUNT) {
+      this.gameWon = true;
+      this.gameOver = true;
+    }
+
+    // Check lose condition
+    if (this.moves >= this.MAX_MOVES) {
+      this.gameOver = true;
+    }
+
+    return {
+      valid: true,
+      megaProbe: true,
+      caughtFrogs: caughtFrogs,
+      caughtCount: caughtFrogs.length,
+      probedPositions: probedPositions,
+      foundPowerup: foundPowerup,
+      message: caughtFrogs.length > 0 ?
+        `Mega probe captured ${caughtFrogs.length} frog${caughtFrogs.length > 1 ? 's' : ''}! ${this.caughtFrogs}/${this.FROG_COUNT}` :
+        'No frogs in mega probe area',
+      gameWon: this.gameWon,
+      gameOver: this.gameOver && !this.gameWon
+    };
   }
 
   /**

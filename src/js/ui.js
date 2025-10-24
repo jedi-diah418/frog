@@ -8,6 +8,7 @@ class GameUI {
     this.gridElement = null;
     this.tiles = [];
     this.debugMode = false; // Show frog positions
+    this.megaProbeActive = false; // Track if mega-probe is active
 
     // Initialize when DOM is ready
     if (document.readyState === 'loading') {
@@ -84,6 +85,10 @@ class GameUI {
     document.getElementById('powerup-radar').addEventListener('click', () => {
       this.useRadarPowerup();
     });
+
+    document.getElementById('powerup-mega-probe').addEventListener('click', () => {
+      this.activateMegaProbe();
+    });
   }
 
   /**
@@ -101,6 +106,8 @@ class GameUI {
         tile.dataset.y = y;
 
         tile.addEventListener('click', () => this.handleTileClick(x, y));
+        tile.addEventListener('mouseenter', () => this.handleTileHover(x, y));
+        tile.addEventListener('mouseleave', () => this.clearMegaProbeHighlight());
 
         this.gridElement.appendChild(tile);
         this.tiles.push({ x, y, element: tile });
@@ -112,11 +119,25 @@ class GameUI {
    * Handle tile click
    */
   handleTileClick(x, y) {
-    const result = this.game.probe(x, y);
+    // Use mega-probe if active
+    const result = this.megaProbeActive ? this.game.megaProbe(x, y) : this.game.probe(x, y);
 
     if (!result.valid) {
       // Invalid move
       return;
+    }
+
+    // If mega-probe was used, deactivate it and clear highlights
+    if (this.megaProbeActive) {
+      this.megaProbeActive = false;
+      this.clearMegaProbeHighlight();
+      document.getElementById('game-grid').style.cursor = 'default';
+
+      // Handle mega-probe result
+      if (result.megaProbe) {
+        this.handleMegaProbeResult(result);
+        return;
+      }
     }
 
     // Update UI immediately (move count, etc.)
@@ -128,11 +149,18 @@ class GameUI {
       // Remove powerup indicator if it was there
       if (result.foundPowerup) {
         tile.element.classList.remove('has-powerup');
-        // Show powerup found message
+        // Show powerup found message - check which type was found
+        const state = this.game.getState();
+        const lastPowerup = state.powerups[state.powerups.length - 1];
         const messageElement = document.getElementById('message');
         const originalText = messageElement.textContent;
         const originalClass = messageElement.className;
-        messageElement.textContent = '📡 Found a Sweeping Radar powerup!';
+
+        if (lastPowerup === 'mega-probe') {
+          messageElement.textContent = '🎯 Found a Mega Probe powerup!';
+        } else {
+          messageElement.textContent = '📡 Found a Sweeping Radar powerup!';
+        }
         messageElement.className = 'success';
         setTimeout(() => {
           messageElement.textContent = originalText;
@@ -420,11 +448,12 @@ class GameUI {
   updatePowerupDisplay() {
     const state = this.game.getState();
     const radarCount = state.powerups.filter(p => p === 'radar').length;
+    const megaProbeCount = state.powerups.filter(p => p === 'mega-probe').length;
 
-    // Update count
+    // Update radar count
     document.getElementById('radar-count').textContent = radarCount;
 
-    // Update disabled state
+    // Update radar disabled state
     const radarElement = document.getElementById('powerup-radar');
     if (radarCount === 0) {
       radarElement.classList.add('disabled');
@@ -432,19 +461,21 @@ class GameUI {
       radarElement.classList.remove('disabled');
     }
 
-    // Show/hide powerup on tile
+    // Update mega-probe count
+    document.getElementById('mega-probe-count').textContent = megaProbeCount;
+
+    // Update mega-probe disabled state
+    const megaProbeElement = document.getElementById('powerup-mega-probe');
+    if (megaProbeCount === 0) {
+      megaProbeElement.classList.add('disabled');
+    } else {
+      megaProbeElement.classList.remove('disabled');
+    }
+
+    // Powerups are hidden - no visual indication on tiles
     this.tiles.forEach(tile => {
       tile.element.classList.remove('has-powerup');
     });
-
-    if (this.game.hiddenPowerup) {
-      const powerupTile = this.tiles.find(t =>
-        t.x === this.game.hiddenPowerup.x && t.y === this.game.hiddenPowerup.y
-      );
-      if (powerupTile && !powerupTile.element.classList.contains('probed')) {
-        powerupTile.element.classList.add('has-powerup');
-      }
-    }
   }
 
   /**
@@ -512,6 +543,127 @@ class GameUI {
   }
 
   /**
+   * Activate mega-probe mode
+   */
+  activateMegaProbe() {
+    const result = this.game.usePowerup('mega-probe');
+
+    if (!result.valid) {
+      return;
+    }
+
+    // Set mega-probe active flag
+    this.megaProbeActive = true;
+
+    // Change cursor to indicate mega-probe mode
+    document.getElementById('game-grid').style.cursor = 'crosshair';
+
+    // Show message
+    const messageElement = document.getElementById('message');
+    messageElement.textContent = '🎯 Mega Probe activated! Click a tile to capture frogs in a 3x3 area.';
+    messageElement.className = 'success';
+  }
+
+  /**
+   * Handle tile hover for mega-probe preview
+   */
+  handleTileHover(x, y) {
+    if (!this.megaProbeActive) {
+      return;
+    }
+
+    // Clear previous highlights
+    this.clearMegaProbeHighlight();
+
+    // Highlight 3x3 area
+    for (let dx = -1; dx <= 1; dx++) {
+      for (let dy = -1; dy <= 1; dy++) {
+        const checkX = x + dx;
+        const checkY = y + dy;
+
+        // Skip out of bounds
+        if (checkX < 0 || checkX >= this.game.GRID_SIZE || checkY < 0 || checkY >= this.game.GRID_SIZE) {
+          continue;
+        }
+
+        const tile = this.tiles.find(t => t.x === checkX && t.y === checkY);
+        if (tile) {
+          if (dx === 0 && dy === 0) {
+            tile.element.classList.add('mega-probe-center');
+          } else {
+            tile.element.classList.add('mega-probe-highlight');
+          }
+        }
+      }
+    }
+  }
+
+  /**
+   * Clear mega-probe highlight
+   */
+  clearMegaProbeHighlight() {
+    this.tiles.forEach(tile => {
+      tile.element.classList.remove('mega-probe-highlight', 'mega-probe-center');
+    });
+  }
+
+  /**
+   * Handle mega-probe result
+   */
+  handleMegaProbeResult(result) {
+    // Update UI
+    this.updateUI();
+
+    // Show capture animation on all probed tiles
+    result.probedPositions.forEach(pos => {
+      const tile = this.tiles.find(t => t.x === pos.x && t.y === pos.y);
+      if (tile) {
+        tile.element.classList.add('mega-probe-capture');
+        setTimeout(() => {
+          tile.element.classList.remove('mega-probe-capture');
+        }, 800);
+      }
+    });
+
+    // Mark caught frogs
+    result.caughtFrogs.forEach(pos => {
+      const tile = this.tiles.find(t => t.x === pos.x && t.y === pos.y);
+      if (tile) {
+        setTimeout(() => {
+          tile.element.classList.add('caught');
+          tile.element.textContent = '🐸';
+        }, 400);
+      }
+    });
+
+    // Show result message
+    setTimeout(() => {
+      const messageElement = document.getElementById('message');
+      messageElement.textContent = result.message;
+      messageElement.className = result.caughtCount > 0 ? 'success' : 'warning';
+
+      // Update frog display
+      this.updateFrogDisplay();
+    }, 800);
+
+    // Show powerup found message if applicable
+    if (result.foundPowerup) {
+      setTimeout(() => {
+        const state = this.game.getState();
+        const lastPowerup = state.powerups[state.powerups.length - 1];
+        const messageElement = document.getElementById('message');
+
+        if (lastPowerup === 'mega-probe') {
+          messageElement.textContent = '🎯 Found a Mega Probe powerup!';
+        } else {
+          messageElement.textContent = '📡 Found a Sweeping Radar powerup!';
+        }
+        messageElement.className = 'success';
+      }, 2000);
+    }
+  }
+
+  /**
    * Show game over overlay
    */
   showGameOver() {
@@ -556,6 +708,9 @@ class GameUI {
    */
   resetGame() {
     this.game.reset();
+    this.megaProbeActive = false;
+    this.clearMegaProbeHighlight();
+    document.getElementById('game-grid').style.cursor = 'default';
     this.createGrid();
     this.updateUI();
   }
