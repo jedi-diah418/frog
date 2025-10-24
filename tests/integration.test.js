@@ -294,14 +294,16 @@ describe('Browser Integration', () => {
 
       // Wait for first animation to complete
       setTimeout(() => {
-        // Probe again nearby - this should show indicators on the first probed tile
+        // Probe again nearby
         const secondTile = window.gameUI.tiles.find(t => t.x === 5 && t.y === 2);
         secondTile.element.click();
 
         // Wait for animation
         setTimeout(() => {
-          // First tile should be probed but should still have received radiation indicator
-          expect(firstTile.element.classList.contains('probed')).toBe(true);
+          // First tile should be tracked as probed in game state
+          expect(window.gameUI.game.isProbed(firstTile.x, firstTile.y)).toBe(true);
+          // But should NOT have visual probed marker
+          expect(firstTile.element.classList.contains('probed')).toBe(false);
           // Radiation calculation should still work for probed tiles
           expect(window.gameUI.game.calculateRadiation(firstTile.x, firstTile.y)).toBeGreaterThanOrEqual(0);
           done();
@@ -309,7 +311,7 @@ describe('Browser Integration', () => {
       }, 1500);
     }, 5000);
 
-    test('should not skip probed tiles when showing indicators', () => {
+    test('should skip radiation indicators on probed tiles', () => {
       window.gameUI.resetGame();
 
       // Place frog
@@ -319,10 +321,13 @@ describe('Browser Integration', () => {
       const probedTile = window.gameUI.tiles.find(t => t.x === 5 && t.y === 4);
       probedTile.element.click();
 
-      // Verify tile is probed
-      expect(probedTile.element.classList.contains('probed')).toBe(true);
+      // Verify tile is tracked as probed in game state
+      expect(window.gameUI.game.isProbed(5, 4)).toBe(true);
 
-      // This probed tile should still show radiation from the frog at 5,5
+      // But tile should NOT have visual probed marker
+      expect(probedTile.element.classList.contains('probed')).toBe(false);
+
+      // Radiation calculation still works (just won't show indicators on it)
       const radiation = window.gameUI.game.calculateRadiation(5, 4);
       expect(radiation).toBeGreaterThan(0);
     });

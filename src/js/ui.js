@@ -147,8 +147,8 @@ class GameUI {
         // Update frog display for caught frogs
         this.updateFrogDisplay();
       } else {
-        // Add probed marker and pulse animation
-        tile.element.classList.add('probed');
+        // Don't mark tiles as probed - let them look normal
+        // Just show pulse animation for feedback
         tile.element.classList.add('just-probed');
 
         // Remove pulse animation after it completes
@@ -245,7 +245,11 @@ class GameUI {
 
       // Find the tile
       const tile = this.tiles.find(t => t.x === x && t.y === y);
-      if (!tile || tile.element.classList.contains('caught')) {
+
+      // Skip tiles that are caught or already probed
+      if (!tile ||
+          tile.element.classList.contains('caught') ||
+          this.game.isProbed(x, y)) {
         return;
       }
 
@@ -264,6 +268,12 @@ class GameUI {
         const delay = distance * 50; // 50ms per tile distance for ripple effect
 
         setTimeout(() => {
+          // Double-check tile hasn't been probed while we were waiting
+          if (this.game.isProbed(x, y) ||
+              tile.element.classList.contains('caught')) {
+            return;
+          }
+
           // Apply radiation color with higher specificity
           tile.element.style.backgroundColor = color;
           tile.element.style.borderColor = color;
