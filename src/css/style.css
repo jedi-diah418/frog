@@ -177,24 +177,26 @@ h1 {
 
 /* Powerup inventory */
 #powerup-inventory {
-  margin-bottom: 15px;
-  padding: 15px;
+  margin-bottom: 10px;
+  padding: 8px 10px;
   background: rgba(0, 0, 0, 0.5);
   border-radius: 5px;
   border: 1px solid var(--radiation-green);
 }
 
 #powerup-inventory h3 {
-  font-size: 0.8rem;
-  margin-bottom: 10px;
+  font-size: 0.65rem;
+  margin-bottom: 5px;
   color: var(--radiation-green);
   text-align: center;
   opacity: 0.8;
+  text-transform: uppercase;
+  letter-spacing: 1px;
 }
 
 #powerup-list {
   display: flex;
-  gap: 10px;
+  gap: 8px;
   justify-content: center;
   align-items: center;
 }
@@ -205,19 +207,19 @@ h1 {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 10px;
+  padding: 6px;
   background: rgba(0, 0, 0, 0.5);
-  border: 2px solid var(--radiation-green);
-  border-radius: 5px;
+  border: 1px solid var(--radiation-green);
+  border-radius: 4px;
   cursor: pointer;
   transition: all 0.3s;
-  min-width: 60px;
-  min-height: 60px;
+  min-width: 45px;
+  min-height: 45px;
 }
 
 .powerup-item:hover {
   background: rgba(57, 255, 20, 0.1);
-  box-shadow: 0 0 15px var(--radiation-green);
+  box-shadow: 0 0 10px var(--radiation-green);
   transform: scale(1.05);
 }
 
@@ -234,23 +236,23 @@ h1 {
 }
 
 .powerup-icon {
-  font-size: 2rem;
-  margin-bottom: 5px;
+  font-size: 1.5rem;
+  line-height: 1;
 }
 
 .powerup-count {
   position: absolute;
-  top: 5px;
-  right: 5px;
+  top: 2px;
+  right: 2px;
   background: var(--radiation-green);
   color: var(--night-sky);
   border-radius: 50%;
-  width: 20px;
-  height: 20px;
+  width: 18px;
+  height: 18px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 0.7rem;
+  font-size: 0.65rem;
   font-weight: bold;
 }
 
@@ -362,27 +364,29 @@ h1 {
   opacity: 0.7;
 }
 
-/* Powerup on tile */
+/* Powerup on tile - subtle hint only */
 .tile.has-powerup {
-  background: rgba(255, 215, 0, 0.2);
-  animation: powerup-glow 2s infinite;
+  animation: powerup-glow 3s infinite;
 }
 
 @keyframes powerup-glow {
   0%, 100% {
-    box-shadow: 0 0 5px rgba(255, 215, 0, 0.5);
+    box-shadow: 0 0 3px rgba(255, 215, 0, 0.3);
+    background: rgba(255, 215, 0, 0.05);
   }
   50% {
-    box-shadow: 0 0 15px rgba(255, 215, 0, 0.8);
+    box-shadow: 0 0 8px rgba(255, 215, 0, 0.4);
+    background: rgba(255, 215, 0, 0.1);
   }
 }
 
+/* Remove the obvious icon - make it a mystery!
 .tile.has-powerup::before {
   content: '📡';
   position: absolute;
   font-size: 1.2rem;
   opacity: 0.8;
-}
+} */
 
 /* Radar sweep animation */
 .tile.radar-sweep {

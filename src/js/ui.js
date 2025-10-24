@@ -264,12 +264,7 @@ class GameUI {
         const delay = distance * 50; // 50ms per tile distance for ripple effect
 
         setTimeout(() => {
-          // Store original background
-          const originalBg = tile.element.style.backgroundColor;
-          const originalBorder = tile.element.style.borderColor;
-          const originalShadow = tile.element.style.boxShadow;
-
-          // Apply radiation color
+          // Apply radiation color with higher specificity
           tile.element.style.backgroundColor = color;
           tile.element.style.borderColor = color;
           tile.element.style.boxShadow = `0 0 10px ${color}`;
@@ -280,12 +275,13 @@ class GameUI {
             tile.element.style.opacity = '0.7';
           }
 
-          // Remove animation and restore after animation completes
+          // Remove animation and clear inline styles after animation completes
           setTimeout(() => {
             tile.element.classList.remove('radiation-indicator');
-            tile.element.style.backgroundColor = originalBg;
-            tile.element.style.borderColor = originalBorder;
-            tile.element.style.boxShadow = originalShadow;
+            // Remove inline styles to let CSS classes take over
+            tile.element.style.backgroundColor = '';
+            tile.element.style.borderColor = '';
+            tile.element.style.boxShadow = '';
             tile.element.style.opacity = '';
           }, 800);
         }, delay);
