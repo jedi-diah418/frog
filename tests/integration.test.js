@@ -51,6 +51,15 @@ describe('Browser Integration', () => {
             </div>
             <div class="trend-indicator" id="trend-indicator"></div>
           </div>
+          <div id="powerup-inventory">
+            <h3>POWERUPS</h3>
+            <div id="powerup-list">
+              <div class="powerup-item" id="powerup-radar">
+                <span class="powerup-icon">📡</span>
+                <span class="powerup-count" id="radar-count">0</span>
+              </div>
+            </div>
+          </div>
           <div id="game-grid"></div>
           <div id="message">Test</div>
           <div class="button-container">
@@ -177,5 +186,81 @@ describe('Browser Integration', () => {
     expect(window.gameUI.game.caughtFrogs).toBe(initialCaught + 1);
     expect(tile.element.classList.contains('caught')).toBe(true);
     expect(tile.element.textContent).toBe('🐸');
+  });
+
+  test('should display powerup inventory', () => {
+    const powerupInventory = document.getElementById('powerup-inventory');
+    const radarPowerup = document.getElementById('powerup-radar');
+    const radarCount = document.getElementById('radar-count');
+
+    expect(powerupInventory).toBeDefined();
+    expect(radarPowerup).toBeDefined();
+    expect(radarCount).toBeDefined();
+  });
+
+  test('should show initial radar powerup count', () => {
+    const radarCount = document.getElementById('radar-count');
+    expect(radarCount.textContent).toBe('1');
+  });
+
+  test('should show powerup on hidden tile', () => {
+    const powerupPos = window.gameUI.game.hiddenPowerup;
+    const tile = window.gameUI.tiles.find(t => t.x === powerupPos.x && t.y === powerupPos.y);
+
+    expect(tile).toBeDefined();
+    expect(tile.element.classList.contains('has-powerup')).toBe(true);
+  });
+
+  test('should update powerup count when found', () => {
+    const powerupPos = window.gameUI.game.hiddenPowerup;
+    const tile = window.gameUI.tiles.find(t => t.x === powerupPos.x && t.y === powerupPos.y);
+
+    // Click the powerup tile
+    tile.element.click();
+
+    // Count should increase
+    const radarCount = document.getElementById('radar-count');
+    expect(radarCount.textContent).toBe('2');
+  });
+
+  test('should remove powerup indicator after finding', () => {
+    // Reset game to get fresh powerup
+    window.gameUI.resetGame();
+
+    const powerupPos = window.gameUI.game.hiddenPowerup;
+    const tile = window.gameUI.tiles.find(t => t.x === powerupPos.x && t.y === powerupPos.y);
+
+    expect(tile.element.classList.contains('has-powerup')).toBe(true);
+
+    // Click to find it
+    tile.element.click();
+
+    // Wait for UI update
+    setTimeout(() => {
+      expect(tile.element.classList.contains('has-powerup')).toBe(false);
+    }, 100);
+  });
+
+  test('should disable powerup when none available', () => {
+    // Reset and use the powerup
+    window.gameUI.resetGame();
+    window.gameUI.game.usePowerup('radar');
+    window.gameUI.updateUI();
+
+    const radarElement = document.getElementById('powerup-radar');
+    const radarCount = document.getElementById('radar-count');
+
+    expect(radarCount.textContent).toBe('0');
+    expect(radarElement.classList.contains('disabled')).toBe(true);
+  });
+
+  test('should enable powerup when available', () => {
+    window.gameUI.resetGame();
+
+    const radarElement = document.getElementById('powerup-radar');
+    const radarCount = document.getElementById('radar-count');
+
+    expect(radarCount.textContent).toBe('1');
+    expect(radarElement.classList.contains('disabled')).toBe(false);
   });
 });

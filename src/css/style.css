@@ -175,6 +175,85 @@ h1 {
   color: var(--radiation-yellow);
 }
 
+/* Powerup inventory */
+#powerup-inventory {
+  margin-bottom: 15px;
+  padding: 15px;
+  background: rgba(0, 0, 0, 0.5);
+  border-radius: 5px;
+  border: 1px solid var(--radiation-green);
+}
+
+#powerup-inventory h3 {
+  font-size: 0.8rem;
+  margin-bottom: 10px;
+  color: var(--radiation-green);
+  text-align: center;
+  opacity: 0.8;
+}
+
+#powerup-list {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  align-items: center;
+}
+
+.powerup-item {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 10px;
+  background: rgba(0, 0, 0, 0.5);
+  border: 2px solid var(--radiation-green);
+  border-radius: 5px;
+  cursor: pointer;
+  transition: all 0.3s;
+  min-width: 60px;
+  min-height: 60px;
+}
+
+.powerup-item:hover {
+  background: rgba(57, 255, 20, 0.1);
+  box-shadow: 0 0 15px var(--radiation-green);
+  transform: scale(1.05);
+}
+
+.powerup-item.disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+  border-color: rgba(57, 255, 20, 0.3);
+}
+
+.powerup-item.disabled:hover {
+  transform: none;
+  box-shadow: none;
+  background: rgba(0, 0, 0, 0.5);
+}
+
+.powerup-icon {
+  font-size: 2rem;
+  margin-bottom: 5px;
+}
+
+.powerup-count {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  background: var(--radiation-green);
+  color: var(--night-sky);
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.7rem;
+  font-weight: bold;
+}
+
 /* Game grid */
 #game-grid {
   display: grid;
@@ -281,6 +360,48 @@ h1 {
   content: '🐸';
   font-size: 1.2rem;
   opacity: 0.7;
+}
+
+/* Powerup on tile */
+.tile.has-powerup {
+  background: rgba(255, 215, 0, 0.2);
+  animation: powerup-glow 2s infinite;
+}
+
+@keyframes powerup-glow {
+  0%, 100% {
+    box-shadow: 0 0 5px rgba(255, 215, 0, 0.5);
+  }
+  50% {
+    box-shadow: 0 0 15px rgba(255, 215, 0, 0.8);
+  }
+}
+
+.tile.has-powerup::before {
+  content: '📡';
+  position: absolute;
+  font-size: 1.2rem;
+  opacity: 0.8;
+}
+
+/* Radar sweep animation */
+.tile.radar-sweep {
+  animation: radar-reveal 0.5s ease-out;
+}
+
+@keyframes radar-reveal {
+  0% {
+    background: rgba(57, 255, 20, 0);
+    transform: scale(1);
+  }
+  50% {
+    background: rgba(57, 255, 20, 0.5);
+    transform: scale(1.1);
+  }
+  100% {
+    background: rgba(57, 255, 20, 0);
+    transform: scale(1);
+  }
 }
 
 .button.active {

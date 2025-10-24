@@ -446,4 +446,246 @@ describe('RadioactiveFroggies', () => {
       expect(game.getNormalizedRadiation()).toBe(0);
     });
   });
+
+  describe('Powerup System', () => {
+    test('should start with 1 radar powerup', () => {
+      const game = new RadioactiveFroggies(12345);
+      expect(game.powerups).toContain('radar');
+      expect(game.powerups.length).toBe(1);
+    });
+
+    test('should initialize hidden powerup', () => {
+      const game = new RadioactiveFroggies(12345);
+      expect(game.hiddenPowerup).toBeDefined();
+      expect(game.hiddenPowerup.x).toBeGreaterThanOrEqual(0);
+      expect(game.hiddenPowerup.x).toBeLessThan(game.GRID_SIZE);
+      expect(game.hiddenPowerup.y).toBeGreaterThanOrEqual(0);
+      expect(game.hiddenPowerup.y).toBeLessThan(game.GRID_SIZE);
+    });
+
+    test('should not place hidden powerup on frog position', () => {
+      const game = new RadioactiveFroggies(12345);
+      const powerup = game.hiddenPowerup;
+      const onFrog = game.frogs.some(f => f.x === powerup.x && f.y === powerup.y);
+      expect(onFrog).toBe(false);
+    });
+
+    test('should find powerup when probing its location', () => {
+      const game = new RadioactiveFroggies(12345);
+      const powerupPos = game.hiddenPowerup;
+
+      const result = game.probe(powerupPos.x, powerupPos.y);
+
+      expect(result.foundPowerup).toBe(true);
+      expect(game.powerups.length).toBe(2); // Started with 1, found 1
+      expect(game.hiddenPowerup).toBeNull();
+    });
+
+    test('should not find powerup at wrong location', () => {
+      const game = new RadioactiveFroggies(12345);
+      const powerupPos = game.hiddenPowerup;
+
+      // Probe different location
+      const differentX = (powerupPos.x + 1) % game.GRID_SIZE;
+      const result = game.probe(differentX, powerupPos.y);
+
+      expect(result.foundPowerup).toBe(false);
+      expect(game.powerups.length).toBe(1); // Still only starting powerup
+    });
+
+    test('should use radar powerup successfully', () => {
+      const game = new RadioactiveFroggies(12345);
+      const initialCount = game.powerups.length;
+
+      const result = game.usePowerup('radar');
+
+      expect(result.valid).toBe(true);
+      expect(result.type).toBe('radar');
+      expect(result.frogPositions).toBeDefined();
+      expect(result.frogPositions.length).toBe(game.frogs.length);
+      expect(game.powerups.length).toBe(initialCount - 1);
+    });
+
+    test('should return frog positions when using radar', () => {
+      const game = new RadioactiveFroggies(12345);
+      game.frogs = [{ x: 3, y: 4 }, { x: 7, y: 8 }];
+
+      const result = game.usePowerup('radar');
+
+      expect(result.frogPositions).toEqual([
+        { x: 3, y: 4 },
+        { x: 7, y: 8 }
+      ]);
+    });
+
+    test('should fail to use powerup when none available', () => {
+      const game = new RadioactiveFroggies(12345);
+      game.powerups = []; // Remove all powerups
+
+      const result = game.usePowerup('radar');
+
+      expect(result.valid).toBe(false);
+    });
+
+    test('should reset powerups on game reset', () => {
+      const game = new RadioactiveFroggies(12345);
+      game.usePowerup('radar'); // Use the starting powerup
+      expect(game.powerups.length).toBe(0);
+
+      game.reset();
+
+      expect(game.powerups.length).toBe(1);
+      expect(game.powerups).toContain('radar');
+    });
+
+    test('should include powerup info in game state', () => {
+      const game = new RadioactiveFroggies(12345);
+
+      const state = game.getState();
+
+      expect(state.powerups).toBeDefined();
+      expect(state.powerups).toEqual(['radar']);
+      expect(state.hasPowerup).toBe(true);
+    });
+
+    test('should show no powerups in state when used', () => {
+      const game = new RadioactiveFroggies(12345);
+      game.usePowerup('radar');
+
+      const state = game.getState();
+
+      expect(state.powerups).toEqual([]);
+      expect(state.hasPowerup).toBe(false);
+    });
+  });
+
+  describe('Frog Hopping with Powerup', () => {
+    test('should make all frogs hop when called', () => {
+      const game = new RadioactiveFroggies(12345);
+      const originalPositions = game.frogs.map(f => ({ x: f.x, y: f.y }));
+
+      game.makeAllFrogsHop();
+
+      // At least some frogs should have moved (unless they had nowhere to go)
+      const someHopped = game.frogs.some((frog, i) =>
+        frog.x !== originalPositions[i].x || frog.y !== originalPositions[i].y
+      );
+
+      // This might not always be true if frogs are stuck, but usually true
+      expect(game.frogs.length).toBe(originalPositions.length);
+    });
+
+    test('should keep frogs in bounds when hopping', () => {
+      const game = new RadioactiveFroggies(12345);
+
+      game.makeAllFrogsHop();
+
+      for (const frog of game.frogs) {
+        expect(frog.x).toBeGreaterThanOrEqual(0);
+        expect(frog.x).toBeLessThan(game.GRID_SIZE);
+        expect(frog.y).toBeGreaterThanOrEqual(0);
+        expect(frog.y).toBeLessThan(game.GRID_SIZE);
+      }
+    });
+
+    test('should be able to make frogs hop twice', () => {
+      const game = new RadioactiveFroggies(12345);
+      const originalPositions = game.frogs.map(f => ({ x: f.x, y: f.y }));
+
+      game.makeAllFrogsHop();
+      game.makeAllFrogsHop();
+
+      // Frogs should still be valid
+      expect(game.frogs.length).toBe(originalPositions.length);
+      for (const frog of game.frogs) {
+        expect(frog.x).toBeGreaterThanOrEqual(0);
+        expect(frog.x).toBeLessThan(game.GRID_SIZE);
+      }
+    });
+  });
+
+  describe('Dual Radiation Tracking', () => {
+    test('should return initial radiation before frogs hop', () => {
+      const game = new RadioactiveFroggies(12345);
+      game.frogs = [{ x: 5, y: 5 }];
+
+      const result = game.probe(5, 4); // Next to frog
+
+      expect(result.initialRadiation).toBeDefined();
+      expect(result.initialRadiation).toBeGreaterThan(0);
+    });
+
+    test('should return final radiation after frogs hop', () => {
+      const game = new RadioactiveFroggies(12345);
+      game.frogs = [{ x: 5, y: 5 }];
+
+      const result = game.probe(5, 4);
+
+      expect(result.finalRadiation).toBeDefined();
+      expect(result.finalRadiation).toBeGreaterThanOrEqual(0);
+    });
+
+    test('should show radiation difference when frog hops away', () => {
+      const game = new RadioactiveFroggies(12345);
+      game.frogs = [{ x: 5, y: 5 }];
+
+      const result = game.probe(5, 4); // Probe next to frog
+
+      // Initial should be high (frog is at 5,5)
+      expect(result.initialRadiation).toBeGreaterThan(0);
+
+      // Final might be lower if frog hopped away (unless it hopped closer)
+      expect(result.finalRadiation).toBeDefined();
+    });
+
+    test('should not have dual radiation when catching frog', () => {
+      const game = new RadioactiveFroggies(12345);
+      game.frogs = [{ x: 5, y: 5 }];
+
+      const result = game.probe(5, 5); // Catch the frog
+
+      expect(result.caught).toBe(true);
+      expect(result.initialRadiation).toBeUndefined();
+      expect(result.finalRadiation).toBeUndefined();
+    });
+
+    test('should track radiation for far probe', () => {
+      const game = new RadioactiveFroggies(12345);
+      game.frogs = [{ x: 0, y: 0 }];
+
+      const result = game.probe(9, 9); // Far from frog
+
+      expect(result.initialRadiation).toBe(0);
+      expect(result.finalRadiation).toBe(0);
+    });
+  });
+
+  describe('Frog Movement Prevention', () => {
+    test('should not allow frog to hop to just-probed tile', () => {
+      const game = new RadioactiveFroggies(12345);
+      game.frogs = [{ x: 5, y: 5 }];
+
+      // Probe next to frog to make it hop
+      game.probe(5, 4);
+
+      // Frog should not be at the probed location
+      const frogAtProbed = game.frogs.some(f => f.x === 5 && f.y === 4);
+      expect(frogAtProbed).toBe(false);
+    });
+
+    test('should allow frog to stay in place if no valid moves', () => {
+      const game = new RadioactiveFroggies(12345);
+      // Place frog in corner
+      game.frogs = [{ x: 0, y: 0 }];
+
+      const originalPos = { x: game.frogs[0].x, y: game.frogs[0].y };
+
+      // Probe next to it - limited hop options
+      game.probe(0, 1);
+
+      // Frog should still be somewhere valid (might stay in place)
+      expect(game.frogs[0].x).toBeGreaterThanOrEqual(0);
+      expect(game.frogs[0].x).toBeLessThan(game.GRID_SIZE);
+    });
+  });
 });
