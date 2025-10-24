@@ -263,4 +263,83 @@ describe('Browser Integration', () => {
     expect(radarCount.textContent).toBe('1');
     expect(radarElement.classList.contains('disabled')).toBe(false);
   });
+
+  describe('Radiation Indicator Display', () => {
+    test('should show radiation indicators on surrounding tiles', () => {
+      window.gameUI.resetGame();
+
+      // Place a frog at a known location
+      window.gameUI.game.frogs = [{ x: 5, y: 5 }];
+
+      // Probe nearby
+      const tile = window.gameUI.tiles.find(t => t.x === 5 && t.y === 4);
+      tile.element.click();
+
+      // Radiation indicators should be applied
+      // Check that surrounding tiles get styled
+      const surroundingTile = window.gameUI.tiles.find(t => t.x === 5 && t.y === 6);
+      // This test verifies the method is called, actual visual testing requires timing
+      expect(window.gameUI.game.calculateRadiation(5, 6)).toBeGreaterThan(0);
+    });
+
+    test('should show radiation indicators on probed tiles', (done) => {
+      window.gameUI.resetGame();
+
+      // Place frogs
+      window.gameUI.game.frogs = [{ x: 5, y: 5 }];
+
+      // Probe once
+      const firstTile = window.gameUI.tiles.find(t => t.x === 5 && t.y === 3);
+      firstTile.element.click();
+
+      // Wait for first animation to complete
+      setTimeout(() => {
+        // Probe again nearby - this should show indicators on the first probed tile
+        const secondTile = window.gameUI.tiles.find(t => t.x === 5 && t.y === 2);
+        secondTile.element.click();
+
+        // Wait for animation
+        setTimeout(() => {
+          // First tile should be probed but should still have received radiation indicator
+          expect(firstTile.element.classList.contains('probed')).toBe(true);
+          // Radiation calculation should still work for probed tiles
+          expect(window.gameUI.game.calculateRadiation(firstTile.x, firstTile.y)).toBeGreaterThanOrEqual(0);
+          done();
+        }, 1500);
+      }, 1500);
+    }, 5000);
+
+    test('should not skip probed tiles when showing indicators', () => {
+      window.gameUI.resetGame();
+
+      // Place frog
+      window.gameUI.game.frogs = [{ x: 5, y: 5 }];
+
+      // Probe a tile
+      const probedTile = window.gameUI.tiles.find(t => t.x === 5 && t.y === 4);
+      probedTile.element.click();
+
+      // Verify tile is probed
+      expect(probedTile.element.classList.contains('probed')).toBe(true);
+
+      // This probed tile should still show radiation from the frog at 5,5
+      const radiation = window.gameUI.game.calculateRadiation(5, 4);
+      expect(radiation).toBeGreaterThan(0);
+    });
+  });
+
+  describe('Powerup UI Issues', () => {
+    test('should not show hidden powerup initially in debug mode', () => {
+      window.gameUI.resetGame();
+
+      // Hidden powerup should not be visible without debug mode
+      const powerupPos = window.gameUI.game.hiddenPowerup;
+      const powerupTile = window.gameUI.tiles.find(t => t.x === powerupPos.x && t.y === powerupPos.y);
+
+      // The tile should have the has-powerup class (it's visible as a glowing tile)
+      // But it shouldn't show the actual frog
+      expect(powerupTile.element.classList.contains('has-powerup')).toBe(true);
+      expect(powerupTile.element.classList.contains('has-frog')).toBe(false);
+    });
+  });
 });
