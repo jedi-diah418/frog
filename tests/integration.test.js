@@ -29,6 +29,15 @@ describe('Browser Integration', () => {
       <body>
         <div id="game-container">
           <h1>☢️ RADIOACTIVE FROGGIES ☢️</h1>
+          <div id="daily-challenge-banner" class="daily-challenge-banner" style="display: none;">
+            <div class="daily-challenge-content">
+              <span class="daily-challenge-icon">🏆</span>
+              <div class="daily-challenge-text">
+                <div class="daily-challenge-title">DAILY CHALLENGE</div>
+                <div class="daily-challenge-stats" id="daily-challenge-stats">Loading...</div>
+              </div>
+            </div>
+          </div>
           <div id="game-info">
             <div class="info-item">
               <div class="info-label">CAUGHT</div>
@@ -67,8 +76,10 @@ describe('Browser Integration', () => {
           <div id="game-grid"></div>
           <div id="message">Test</div>
           <div class="button-container">
+            <button id="daily-challenge-button" class="button special">🏆 DAILY</button>
             <button id="reset-button" class="button">RESET</button>
             <button id="new-game-button" class="button primary">NEW GAME</button>
+            <button id="stats-button" class="button">📊 STATS</button>
             <button id="share-button" class="button">SHARE</button>
             <button id="sound-button" class="button">🔊 SOUND</button>
             <button id="debug-button" class="button">SHOW FROGS</button>
@@ -114,6 +125,7 @@ describe('Browser Integration', () => {
     const seededRandomJS = fs.readFileSync(path.join(__dirname, '../src/js/seededRandom.js'), 'utf-8');
     const achievementsJS = fs.readFileSync(path.join(__dirname, '../src/js/achievements.js'), 'utf-8');
     const soundsJS = fs.readFileSync(path.join(__dirname, '../src/js/sounds.js'), 'utf-8');
+    const dailyChallengeJS = fs.readFileSync(path.join(__dirname, '../src/js/dailyChallenge.js'), 'utf-8');
     const radioactiveFroggiesJS = fs.readFileSync(path.join(__dirname, '../src/js/radioactiveFroggies.js'), 'utf-8');
     const uiJS = fs.readFileSync(path.join(__dirname, '../src/js/ui.js'), 'utf-8');
 
@@ -121,6 +133,7 @@ describe('Browser Integration', () => {
     window.eval(seededRandomJS);
     window.eval(achievementsJS);
     window.eval(soundsJS);
+    window.eval(dailyChallengeJS);
     window.eval(radioactiveFroggiesJS);
     window.eval(uiJS);
 

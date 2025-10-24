@@ -14,6 +14,17 @@
   <div id="game-container">
     <h1>☢️ RADIOACTIVE FROGGIES ☢️</h1>
 
+    <!-- Daily Challenge Banner -->
+    <div id="daily-challenge-banner" class="daily-challenge-banner" style="display: none;">
+      <div class="daily-challenge-content">
+        <span class="daily-challenge-icon">🏆</span>
+        <div class="daily-challenge-text">
+          <div class="daily-challenge-title">DAILY CHALLENGE</div>
+          <div class="daily-challenge-stats" id="daily-challenge-stats">Loading...</div>
+        </div>
+      </div>
+    </div>
+
     <!-- Game Info Panel -->
     <div id="game-info">
       <div class="info-item">
@@ -63,8 +74,10 @@
 
     <!-- Buttons -->
     <div class="button-container">
+      <button id="daily-challenge-button" class="button special">🏆 DAILY</button>
       <button id="reset-button" class="button">RESET</button>
       <button id="new-game-button" class="button primary">NEW GAME</button>
+      <button id="stats-button" class="button">📊 STATS</button>
       <button id="share-button" class="button">SHARE</button>
       <button id="sound-button" class="button">🔊 SOUND</button>
       <button id="debug-button" class="button">SHOW FROGS</button>
@@ -105,6 +118,7 @@
   <script src="src/js/seededRandom.js"></script>
   <script src="src/js/achievements.js"></script>
   <script src="src/js/sounds.js"></script>
+  <script src="src/js/dailyChallenge.js"></script>
   <script src="src/js/radioactiveFroggies.js"></script>
   <script src="src/js/ui.js"></script>
 </body>

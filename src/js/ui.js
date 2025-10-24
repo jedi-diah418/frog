@@ -11,7 +11,9 @@ class GameUI {
     this.megaProbeActive = false; // Track if mega-probe is active
     this.achievementManager = new AchievementManager(); // Achievement tracking
     this.soundManager = new SoundManager(); // Sound effects
+    this.dailyChallenge = new DailyChallenge(); // Daily challenge tracking
     this.currentGameMisses = 0; // Track misses for perfect game
+    this.isDailyChallenge = false; // Track if current game is daily challenge
 
     // Initialize when DOM is ready
     if (document.readyState === 'loading') {
@@ -86,6 +88,14 @@ class GameUI {
 
     document.getElementById('sound-button').addEventListener('click', () => {
       this.toggleSound();
+    });
+
+    document.getElementById('daily-challenge-button').addEventListener('click', () => {
+      this.loadDailyChallenge();
+    });
+
+    document.getElementById('stats-button').addEventListener('click', () => {
+      this.showStats();
     });
 
     // Powerup listeners
@@ -757,15 +767,37 @@ class GameUI {
       wasPerfect
     );
 
+    // Record daily challenge completion if applicable
+    if (this.isDailyChallenge && state.gameWon) {
+      this.dailyChallenge.recordCompletion(state.moves);
+      this.updateDailyChallengeDisplay();
+    }
+
     if (state.gameWon) {
       content.className = 'game-over-content won';
       title.textContent = '🎉 MISSION SUCCESS! 🎉';
-      stats.innerHTML = `
+
+      let statsContent = `
         <div>All ${state.totalFrogs} frogs captured!</div>
         <div>Moves used: ${state.moves}/${state.maxMoves}</div>
         <div>Efficiency: ${Math.round((state.maxMoves - state.moves) / state.maxMoves * 100)}%</div>
-        <div style="margin-top: 10px; font-size: 0.9rem;">Share this level with friends!</div>
       `;
+
+      // Add daily challenge info if applicable
+      if (this.isDailyChallenge) {
+        const dailyStats = this.dailyChallenge.getTodaysStats();
+        statsContent += `
+          <div style="margin-top: 10px; padding-top: 10px; border-top: 1px solid rgba(255,255,255,0.3);">
+            <strong>🏆 Daily Challenge Complete!</strong>
+          </div>
+          <div>Completions today: ${dailyStats.completions.count}</div>
+          <div>Your best: ${dailyStats.completions.bestMoves} moves</div>
+        `;
+      } else {
+        statsContent += `<div style="margin-top: 10px; font-size: 0.9rem;">Share this level with friends!</div>`;
+      }
+
+      stats.innerHTML = statsContent;
       // Play success sound
       setTimeout(() => this.soundManager.success(), 500);
     } else {
@@ -813,10 +845,15 @@ class GameUI {
   newGame() {
     this.game.newGame();
     this.currentGameMisses = 0;
+    this.isDailyChallenge = false;
+
+    // Hide daily challenge banner
+    document.getElementById('daily-challenge-banner').style.display = 'none';
 
     // Update URL with new seed
     const url = new URL(window.location);
     url.searchParams.set('seed', this.game.seed);
+    url.searchParams.delete('daily');
     window.history.pushState({}, '', url);
 
     this.createGrid();
@@ -947,6 +984,128 @@ class GameUI {
   updateSoundButton() {
     const button = document.getElementById('sound-button');
     button.textContent = this.soundManager.muted ? '🔇 SOUND' : '🔊 SOUND';
+  }
+
+  /**
+   * Load today's daily challenge
+   */
+  loadDailyChallenge() {
+    const seed = this.dailyChallenge.getTodaysSeed();
+    const stats = this.dailyChallenge.getTodaysStats();
+
+    // Start game with today's seed
+    this.game = new RadioactiveFroggies(seed);
+    this.isDailyChallenge = true;
+    this.currentGameMisses = 0;
+
+    // Record attempt
+    this.dailyChallenge.recordAttempt();
+
+    // Update URL
+    const url = new URL(window.location);
+    url.searchParams.set('seed', seed);
+    url.searchParams.set('daily', 'true');
+    window.history.pushState({}, '', url);
+
+    // Update UI
+    this.createGrid();
+    this.updateUI();
+    this.updateDailyChallengeDisplay();
+
+    // Show banner
+    const banner = document.getElementById('daily-challenge-banner');
+    banner.style.display = 'block';
+
+    // Hide game over if showing
+    this.hideGameOver();
+
+    // Show message
+    const messageElement = document.getElementById('message');
+    messageElement.textContent = '🏆 Daily Challenge loaded! Can you beat it?';
+    messageElement.className = 'success';
+  }
+
+  /**
+   * Update daily challenge banner display
+   */
+  updateDailyChallengeDisplay() {
+    const stats = this.dailyChallenge.getTodaysStats();
+    const statsElement = document.getElementById('daily-challenge-stats');
+
+    let statsText = `Today: ${stats.date}`;
+
+    if (stats.completions.count > 0) {
+      statsText += ` | Completed ${stats.completions.count}x | Best: ${stats.completions.bestMoves} moves`;
+    } else {
+      statsText += ` | Not completed yet`;
+    }
+
+    if (stats.attempts > 0) {
+      statsText += ` | Attempts: ${stats.attempts}`;
+    }
+
+    statsElement.textContent = statsText;
+  }
+
+  /**
+   * Show statistics dashboard
+   */
+  showStats() {
+    // Get achievement stats
+    const achievementStats = this.achievementManager.getStats();
+    const allAchievements = this.achievementManager.getAllAchievements();
+    const unlockedCount = allAchievements.filter(a => a.unlocked).length;
+
+    // Get daily challenge stats
+    const dailyStats = this.dailyChallenge.getTodaysStats();
+    const streak = this.dailyChallenge.getStreak();
+    const totalDays = this.dailyChallenge.getTotalDaysCompleted();
+
+    // Create stats display
+    let statsHTML = `
+      <h2>📊 STATISTICS</h2>
+      <div class="stats-section">
+        <h3>🎮 Game Stats</h3>
+        <div>Total Games: ${achievementStats.totalGames}</div>
+        <div>Total Wins: ${achievementStats.totalWins}</div>
+        <div>Win Rate: ${achievementStats.totalGames > 0 ? Math.round((achievementStats.totalWins / achievementStats.totalGames) * 100) : 0}%</div>
+        <div>Total Frogs Caught: ${achievementStats.totalFrogsCaught}</div>
+        <div>Best Moves: ${achievementStats.bestMoves === Infinity ? 'N/A' : achievementStats.bestMoves}</div>
+        <div>Best Accuracy: ${achievementStats.bestAccuracy}%</div>
+        <div>Perfect Games: ${achievementStats.perfectGames}</div>
+        <div>Win Streak: ${achievementStats.currentWinStreak} (Best: ${achievementStats.maxWinStreak})</div>
+      </div>
+      <div class="stats-section">
+        <h3>🏆 Daily Challenge</h3>
+        <div>Current Streak: ${streak} days</div>
+        <div>Total Days Completed: ${totalDays}</div>
+        <div>Today's Attempts: ${dailyStats.attempts}</div>
+        ${dailyStats.completions.count > 0 ?
+          `<div>Today's Best: ${dailyStats.completions.bestMoves} moves</div>` :
+          '<div>Not completed today</div>'}
+      </div>
+      <div class="stats-section">
+        <h3>🏅 Achievements</h3>
+        <div>Unlocked: ${unlockedCount}/${allAchievements.length}</div>
+        <div>Powerups Used: ${achievementStats.powerupsUsed}</div>
+        <div>Powerups Found: ${achievementStats.powerupsFound}</div>
+        <div>Max Mega-Probe Capture: ${achievementStats.maxMegaProbeCapture}</div>
+      </div>
+    `;
+
+    // Show in game over overlay (reusing it as modal)
+    const overlay = document.getElementById('game-over-overlay');
+    const content = document.getElementById('game-over-content');
+    const title = document.getElementById('game-over-title');
+    const stats = document.getElementById('game-over-stats');
+    const achievements = document.getElementById('achievements-unlocked');
+
+    content.className = 'game-over-content stats';
+    title.textContent = '📊 STATISTICS';
+    stats.innerHTML = statsHTML;
+    achievements.innerHTML = '';
+
+    overlay.classList.add('show');
   }
 }
 
