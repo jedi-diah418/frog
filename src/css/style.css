@@ -178,15 +178,15 @@ h1 {
 /* Powerup inventory */
 #powerup-inventory {
   margin-bottom: 10px;
-  padding: 8px 10px;
+  padding: 5px 8px;
   background: rgba(0, 0, 0, 0.5);
   border-radius: 5px;
   border: 1px solid var(--radiation-green);
 }
 
 #powerup-inventory h3 {
-  font-size: 0.65rem;
-  margin-bottom: 5px;
+  font-size: 0.55rem;
+  margin-bottom: 3px;
   color: var(--radiation-green);
   text-align: center;
   opacity: 0.8;
@@ -196,7 +196,7 @@ h1 {
 
 #powerup-list {
   display: flex;
-  gap: 8px;
+  gap: 6px;
   justify-content: center;
   align-items: center;
 }
@@ -207,14 +207,14 @@ h1 {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 6px;
+  padding: 4px;
   background: rgba(0, 0, 0, 0.5);
   border: 1px solid var(--radiation-green);
   border-radius: 4px;
   cursor: pointer;
   transition: all 0.3s;
-  min-width: 45px;
-  min-height: 45px;
+  min-width: 36px;
+  min-height: 36px;
 }
 
 .powerup-item:hover {
@@ -236,23 +236,23 @@ h1 {
 }
 
 .powerup-icon {
-  font-size: 1.5rem;
+  font-size: 1.2rem;
   line-height: 1;
 }
 
 .powerup-count {
   position: absolute;
-  top: 2px;
-  right: 2px;
+  top: 1px;
+  right: 1px;
   background: var(--radiation-green);
   color: var(--night-sky);
   border-radius: 50%;
-  width: 18px;
-  height: 18px;
+  width: 16px;
+  height: 16px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 0.65rem;
+  font-size: 0.6rem;
   font-weight: bold;
 }
 

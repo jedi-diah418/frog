@@ -318,46 +318,52 @@ class GameUI {
       // Calculate radiation at this position
       const radiation = this.game.calculateRadiation(x, y);
 
-      if (radiation > 0) {
-        // Calculate normalized radiation for this tile
-        const normalized = Math.min(radiation / this.game.MAX_RADIATION, 1);
+      // Always show indicators, even for zero radiation (for feedback)
+      // Calculate normalized radiation for this tile
+      const normalized = Math.min(radiation / this.game.MAX_RADIATION, 1);
 
-        // Get color based on radiation intensity
-        const color = this.getRadiationColor(normalized);
+      // Get color based on radiation intensity
+      const color = radiation > 0 ? this.getRadiationColor(normalized) : '#0a1128';
 
-        // Apply visual indicator with delay based on distance
-        const distance = Math.abs(dx) + Math.abs(dy);
-        const delay = distance * 50; // 50ms per tile distance for ripple effect
+      // Apply visual indicator with delay based on distance
+      const distance = Math.abs(dx) + Math.abs(dy);
+      const delay = distance * 50; // 50ms per tile distance for ripple effect
 
-        setTimeout(() => {
-          // Double-check tile hasn't been probed while we were waiting
-          if (this.game.isProbed(x, y) ||
-              tile.element.classList.contains('caught')) {
-            return;
-          }
+      setTimeout(() => {
+        // Double-check tile hasn't been probed while we were waiting
+        if (this.game.isProbed(x, y) ||
+            tile.element.classList.contains('caught')) {
+          return;
+        }
 
-          // Apply radiation color with higher specificity
-          tile.element.style.backgroundColor = color;
-          tile.element.style.borderColor = color;
+        // Apply radiation color with higher specificity
+        tile.element.style.backgroundColor = color;
+        tile.element.style.borderColor = color;
+
+        // Only add glow for non-zero radiation
+        if (radiation > 0) {
           tile.element.style.boxShadow = `0 0 10px ${color}`;
-          tile.element.classList.add('radiation-indicator');
+        } else {
+          tile.element.style.boxShadow = '0 0 5px rgba(57, 255, 20, 0.3)';
+        }
 
-          // Add visual indicator for initial vs final
-          if (isInitial) {
-            tile.element.style.opacity = '0.7';
-          }
+        tile.element.classList.add('radiation-indicator');
 
-          // Remove animation and clear inline styles after animation completes
-          setTimeout(() => {
-            tile.element.classList.remove('radiation-indicator');
-            // Remove inline styles to let CSS classes take over
-            tile.element.style.backgroundColor = '';
-            tile.element.style.borderColor = '';
-            tile.element.style.boxShadow = '';
-            tile.element.style.opacity = '';
-          }, 800);
-        }, delay);
-      }
+        // Add visual indicator for initial vs final
+        if (isInitial) {
+          tile.element.style.opacity = '0.7';
+        }
+
+        // Remove animation and clear inline styles after animation completes
+        setTimeout(() => {
+          tile.element.classList.remove('radiation-indicator');
+          // Remove inline styles to let CSS classes take over
+          tile.element.style.backgroundColor = '';
+          tile.element.style.borderColor = '';
+          tile.element.style.boxShadow = '';
+          tile.element.style.opacity = '';
+        }, 800);
+      }, delay);
     });
   }
 
@@ -381,9 +387,6 @@ class GameUI {
     } else if (state.movesRemaining <= 20) {
       remainingElement.classList.add('warning');
     }
-
-    // Update radiation meter
-    this.updateRadiationMeter(state);
 
     // Update seed display
     document.getElementById('seed-value').textContent = state.seed.toString().padStart(6, '0');

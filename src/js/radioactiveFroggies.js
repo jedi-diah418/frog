@@ -514,7 +514,8 @@ class RadioactiveFroggies {
       gameWon: this.gameWon,
       movesRemaining: this.MAX_MOVES - this.moves,
       powerups: this.powerups.slice(), // Return copy of powerups array
-      hasPowerup: this.powerups.length > 0
+      hasPowerup: this.powerups.length > 0,
+      probed: this.probed.slice() // Return copy of probed array
     };
   }
 
