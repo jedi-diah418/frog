@@ -817,3 +817,38 @@ h1 {
 .tile.has-frog.frog-normal::before {
   content: '🐸';
 }
+
+/* Clear radiation indicator */
+.radiation-clear {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 0.7rem;
+  font-weight: bold;
+  color: var(--radiation-green);
+  text-shadow: 0 0 8px rgba(57, 255, 20, 0.8);
+  animation: clear-indicator 1.5s ease-out;
+  pointer-events: none;
+  z-index: 10;
+  letter-spacing: 1px;
+}
+
+@keyframes clear-indicator {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.5);
+  }
+  20% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1.2);
+  }
+  80% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.8);
+  }
+}

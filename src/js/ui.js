@@ -206,6 +206,19 @@ class GameUI {
         // Just show pulse animation for feedback
         tile.element.classList.add('just-probed');
 
+        // If zero radiation, show "CLEAR" indicator
+        if (result.finalRadiation === 0) {
+          const clearIndicator = document.createElement('div');
+          clearIndicator.className = 'radiation-clear';
+          clearIndicator.textContent = 'CLEAR';
+          tile.element.appendChild(clearIndicator);
+
+          // Remove clear indicator after animation
+          setTimeout(() => {
+            clearIndicator.remove();
+          }, 1500);
+        }
+
         // Remove pulse animation after it completes
         setTimeout(() => {
           tile.element.classList.remove('just-probed');
