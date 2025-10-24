@@ -645,3 +645,175 @@ h1 {
 * {
   -webkit-tap-highlight-color: transparent;
 }
+
+/* Achievement Toast Notification */
+.achievement-toast {
+  position: fixed;
+  top: 20px;
+  right: -400px;
+  background: linear-gradient(135deg, #2a2a2a 0%, #1a1a1a 100%);
+  border: 2px solid var(--radiation-green);
+  border-radius: 8px;
+  padding: 16px 20px;
+  min-width: 300px;
+  box-shadow: 0 4px 20px rgba(57, 255, 20, 0.3), 0 0 40px rgba(57, 255, 20, 0.1);
+  z-index: 10000;
+  transition: right 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+.achievement-toast.show {
+  right: 20px;
+  animation: achievement-pulse 0.5s ease-out;
+}
+
+.achievement-content {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.achievement-icon {
+  font-size: 3rem;
+  line-height: 1;
+  filter: drop-shadow(0 0 8px rgba(57, 255, 20, 0.5));
+}
+
+.achievement-text {
+  flex: 1;
+}
+
+.achievement-title {
+  font-family: 'Courier New', monospace;
+  font-size: 0.75rem;
+  color: var(--radiation-green);
+  font-weight: bold;
+  letter-spacing: 1px;
+  margin-bottom: 4px;
+  text-transform: uppercase;
+}
+
+.achievement-name {
+  font-family: 'Courier New', monospace;
+  font-size: 1rem;
+  color: var(--text-color);
+  font-weight: bold;
+}
+
+@keyframes achievement-pulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+}
+
+/* Achievements in Game Over */
+#achievements-unlocked {
+  margin: 20px 0;
+  padding: 16px;
+  background: rgba(57, 255, 20, 0.05);
+  border: 1px solid var(--radiation-green);
+  border-radius: 8px;
+}
+
+#achievements-unlocked h3 {
+  color: var(--radiation-green);
+  margin: 0 0 12px 0;
+  font-size: 1rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.achievement-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px;
+  margin: 8px 0;
+  background: rgba(57, 255, 20, 0.1);
+  border-radius: 4px;
+  animation: achievement-slide-in 0.3s ease-out;
+}
+
+.achievement-item-icon {
+  font-size: 2rem;
+  filter: drop-shadow(0 0 4px rgba(57, 255, 20, 0.5));
+}
+
+.achievement-item-text {
+  flex: 1;
+}
+
+.achievement-item-name {
+  font-weight: bold;
+  color: var(--text-color);
+  margin-bottom: 2px;
+}
+
+.achievement-item-description {
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+@keyframes achievement-slide-in {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* Frog Type Visual Indicators */
+.tile.caught.frog-normal {
+  background: rgba(57, 255, 20, 0.3);
+  border-color: var(--radiation-green);
+}
+
+.tile.caught.frog-toxic {
+  background: rgba(255, 140, 0, 0.4);
+  border-color: #ff8c00;
+  box-shadow: 0 0 15px rgba(255, 140, 0, 0.5);
+  animation: toxic-pulse 1.5s infinite;
+}
+
+.tile.caught.frog-jumpy {
+  background: rgba(0, 191, 255, 0.3);
+  border-color: #00bfff;
+  box-shadow: 0 0 10px rgba(0, 191, 255, 0.4);
+}
+
+.tile.caught.frog-ninja {
+  background: rgba(128, 0, 128, 0.3);
+  border-color: #800080;
+  box-shadow: 0 0 10px rgba(128, 0, 128, 0.4);
+}
+
+@keyframes toxic-pulse {
+  0%, 100% {
+    box-shadow: 0 0 10px rgba(255, 140, 0, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(255, 140, 0, 0.6);
+  }
+}
+
+/* Frog type icons in debug mode */
+.tile.has-frog.frog-toxic::before {
+  content: '☢️🐸';
+}
+
+.tile.has-frog.frog-jumpy::before {
+  content: '⚡🐸';
+}
+
+.tile.has-frog.frog-ninja::before {
+  content: '🥷🐸';
+}
+
+.tile.has-frog.frog-normal::before {
+  content: '🐸';
+}

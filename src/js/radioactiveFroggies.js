@@ -70,7 +70,26 @@ class RadioactiveFroggies {
 
     // Shuffle and take first FROG_COUNT positions
     const shuffled = this.rng.shuffle(positions);
-    this.frogs = shuffled.slice(0, this.FROG_COUNT);
+    this.frogs = shuffled.slice(0, this.FROG_COUNT).map((pos, index) => {
+      // Assign frog types: normal, jumpy, toxic, ninja
+      // Distribution: 40% normal, 30% toxic, 20% jumpy, 10% ninja
+      const rand = this.rng.next();
+      let type;
+      if (rand < 0.4) {
+        type = 'normal';
+      } else if (rand < 0.7) {
+        type = 'toxic'; // 2x radiation
+      } else if (rand < 0.9) {
+        type = 'jumpy'; // Hops 2 tiles
+      } else {
+        type = 'ninja'; // 0.5x radiation
+      }
+
+      return {
+        ...pos,
+        type: type
+      };
+    });
   }
 
   /**
@@ -114,7 +133,16 @@ class RadioactiveFroggies {
       if (distance <= this.RADIATION_RANGE) {
         // Radiation intensity decreases with distance
         // Formula: (RADIATION_RANGE + 1 - distance)
-        radiation += (this.RADIATION_RANGE + 1 - distance);
+        let frogRadiation = (this.RADIATION_RANGE + 1 - distance);
+
+        // Apply frog type multipliers
+        if (frog.type === 'toxic') {
+          frogRadiation *= 2; // Toxic frogs give 2x radiation
+        } else if (frog.type === 'ninja') {
+          frogRadiation *= 0.5; // Ninja frogs give 0.5x radiation
+        }
+
+        radiation += frogRadiation;
       }
     }
 
@@ -153,7 +181,8 @@ class RadioactiveFroggies {
 
       // If probe is within scare radius, frog hops away
       if (distance > 0 && distance <= this.FROG_SCARE_RADIUS) {
-        const hopDistance = 1; // Frogs only hop 1 tile at a time
+        // Jumpy frogs hop 2 tiles, others hop 1
+        const hopDistance = frog.type === 'jumpy' ? 2 : 1;
         let newX = frog.x;
         let newY = frog.y;
         let attempts = 0;
@@ -161,7 +190,7 @@ class RadioactiveFroggies {
 
         // Try to find a valid hop position
         while (attempts < maxAttempts) {
-          // Random direction (one tile in any direction)
+          // Random direction
           const dx = this.rng.nextInt(-hopDistance, hopDistance);
           const dy = hopDistance - Math.abs(dx);
           const dySign = this.rng.nextInt(0, 1) === 0 ? -1 : 1;
@@ -229,9 +258,10 @@ class RadioactiveFroggies {
 
     if (frogIndex !== -1) {
       // Caught a frog!
+      const caughtFrog = this.frogs[frogIndex];
       this.frogs.splice(frogIndex, 1);
       this.caughtFrogs++;
-      this.caughtPositions.push({ x, y });
+      this.caughtPositions.push({ x, y, type: caughtFrog.type });
       this.probed.push({ x, y });
       this.moves++;
 
@@ -248,6 +278,7 @@ class RadioactiveFroggies {
       return {
         valid: true,
         caught: true,
+        frogType: caughtFrog.type,
         radiation: 0,
         foundPowerup: foundPowerup,
         message: `Caught a frog! ${this.caughtFrogs}/${this.FROG_COUNT}`,
@@ -330,10 +361,11 @@ class RadioactiveFroggies {
         // Check for frog
         const frogIndex = this.isFrogAt(checkX, checkY);
         if (frogIndex !== -1) {
-          caughtFrogs.push({ x: checkX, y: checkY });
+          const caughtFrog = this.frogs[frogIndex];
+          caughtFrogs.push({ x: checkX, y: checkY, type: caughtFrog.type });
           this.frogs.splice(frogIndex, 1);
           this.caughtFrogs++;
-          this.caughtPositions.push({ x: checkX, y: checkY });
+          this.caughtPositions.push({ x: checkX, y: checkY, type: caughtFrog.type });
         }
       }
     }
