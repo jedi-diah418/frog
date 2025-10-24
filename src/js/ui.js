@@ -9,6 +9,9 @@ class GameUI {
     this.tiles = [];
     this.debugMode = false; // Show frog positions
     this.megaProbeActive = false; // Track if mega-probe is active
+    this.achievementManager = new AchievementManager(); // Achievement tracking
+    this.soundManager = new SoundManager(); // Sound effects
+    this.currentGameMisses = 0; // Track misses for perfect game
 
     // Initialize when DOM is ready
     if (document.readyState === 'loading') {
@@ -81,6 +84,10 @@ class GameUI {
       this.toggleDebugMode();
     });
 
+    document.getElementById('sound-button').addEventListener('click', () => {
+      this.toggleSound();
+    });
+
     // Powerup listeners
     document.getElementById('powerup-radar').addEventListener('click', () => {
       this.useRadarPowerup();
@@ -89,6 +96,9 @@ class GameUI {
     document.getElementById('powerup-mega-probe').addEventListener('click', () => {
       this.activateMegaProbe();
     });
+
+    // Update sound button text on init
+    this.updateSoundButton();
   }
 
   /**
@@ -169,12 +179,29 @@ class GameUI {
       }
 
       if (result.caught) {
-        tile.element.classList.add('caught');
+        tile.element.classList.add('caught', `frog-${result.frogType}`);
         tile.element.textContent = '🐸';
+
+        // Play ribbit sound
+        this.soundManager.ribbit();
+
+        // Achievement: Lucky Shot - catch on first probe
+        if (this.game.moves === 1) {
+          const achievements = this.achievementManager.recordFirstProbeCatch();
+          this.showAchievementNotifications(achievements);
+        }
 
         // Update frog display for caught frogs
         this.updateFrogDisplay();
       } else {
+        // Track miss for perfect game achievement
+        this.currentGameMisses++;
+
+        // Play geiger click based on radiation level
+        const maxRadiation = this.game.FROG_COUNT * (this.game.RADIATION_RANGE + 1);
+        const intensity = result.finalRadiation / maxRadiation;
+        this.soundManager.geigerClick(intensity);
+
         // Don't mark tiles as probed - let them look normal
         // Just show pulse animation for feedback
         tile.element.classList.add('just-probed');
@@ -194,6 +221,13 @@ class GameUI {
           // Update frog display after both animations
           this.updateFrogDisplay();
         }, 1000);
+      }
+
+      // Track powerup found
+      if (result.foundPowerup) {
+        this.soundManager.powerup();
+        const achievements = this.achievementManager.recordPowerupFound();
+        this.showAchievementNotifications(achievements);
       }
     }
 
@@ -228,14 +262,14 @@ class GameUI {
 
     // First, remove all frog indicators
     this.tiles.forEach(tile => {
-      tile.element.classList.remove('has-frog');
+      tile.element.classList.remove('has-frog', 'frog-normal', 'frog-toxic', 'frog-jumpy', 'frog-ninja');
     });
 
     // Then add indicators for current frog positions
     this.game.frogs.forEach(frog => {
       const tile = this.tiles.find(t => t.x === frog.x && t.y === frog.y);
       if (tile && !tile.element.classList.contains('caught')) {
-        tile.element.classList.add('has-frog');
+        tile.element.classList.add('has-frog', `frog-${frog.type}`);
       }
     });
   }
@@ -488,8 +522,15 @@ class GameUI {
       return;
     }
 
+    // Track powerup usage for achievements
+    const achievements = this.achievementManager.recordPowerupUsed();
+    this.showAchievementNotifications(achievements);
+
     // Disable tile clicks during animation
     this.gridElement.style.pointerEvents = 'none';
+
+    // Play radar sweep sound
+    this.soundManager.radarSweep();
 
     // Show radar sweep animation on all tiles
     this.tiles.forEach((tile, index) => {
@@ -552,6 +593,10 @@ class GameUI {
       return;
     }
 
+    // Track powerup usage for achievements
+    const achievements = this.achievementManager.recordPowerupUsed();
+    this.showAchievementNotifications(achievements);
+
     // Set mega-probe active flag
     this.megaProbeActive = true;
 
@@ -611,8 +656,24 @@ class GameUI {
    * Handle mega-probe result
    */
   handleMegaProbeResult(result) {
+    // Play explosion sound
+    this.soundManager.explosion();
+
     // Update UI
     this.updateUI();
+
+    // Track mega-probe capture for achievements
+    if (result.caughtCount > 0) {
+      const achievements = this.achievementManager.recordMegaProbeCapture(result.caughtCount);
+      this.showAchievementNotifications(achievements);
+    }
+
+    // Track powerup found
+    if (result.foundPowerup) {
+      this.soundManager.powerup();
+      const achievements = this.achievementManager.recordPowerupFound();
+      this.showAchievementNotifications(achievements);
+    }
 
     // Show capture animation on all probed tiles
     result.probedPositions.forEach(pos => {
@@ -630,7 +691,7 @@ class GameUI {
       const tile = this.tiles.find(t => t.x === pos.x && t.y === pos.y);
       if (tile) {
         setTimeout(() => {
-          tile.element.classList.add('caught');
+          tile.element.classList.add('caught', `frog-${pos.type}`);
           tile.element.textContent = '🐸';
         }, 400);
       }
@@ -673,6 +734,16 @@ class GameUI {
     const title = document.getElementById('game-over-title');
     const stats = document.getElementById('game-over-stats');
 
+    // Record game for achievements
+    const wasPerfect = this.currentGameMisses === 0 && state.gameWon;
+    const achievements = this.achievementManager.recordGame(
+      state.gameWon,
+      state.moves,
+      state.probed.length,
+      state.caughtFrogs,
+      wasPerfect
+    );
+
     if (state.gameWon) {
       content.className = 'game-over-content won';
       title.textContent = '🎉 MISSION SUCCESS! 🎉';
@@ -682,6 +753,8 @@ class GameUI {
         <div>Efficiency: ${Math.round((state.maxMoves - state.moves) / state.maxMoves * 100)}%</div>
         <div style="margin-top: 10px; font-size: 0.9rem;">Share this level with friends!</div>
       `;
+      // Play success sound
+      setTimeout(() => this.soundManager.success(), 500);
     } else {
       content.className = 'game-over-content lost';
       title.textContent = '☠️ MISSION FAILED ☠️';
@@ -691,7 +764,12 @@ class GameUI {
         <div style="margin-top: 10px;">The frogs dried up from radiation exposure.</div>
         <div style="font-size: 0.9rem;">Try again!</div>
       `;
+      // Play failure sound
+      setTimeout(() => this.soundManager.failure(), 500);
     }
+
+    // Show achievements unlocked this game
+    this.showGameOverAchievements(achievements);
 
     overlay.classList.add('show');
   }
@@ -709,6 +787,7 @@ class GameUI {
   resetGame() {
     this.game.reset();
     this.megaProbeActive = false;
+    this.currentGameMisses = 0;
     this.clearMegaProbeHighlight();
     document.getElementById('game-grid').style.cursor = 'default';
     this.createGrid();
@@ -720,6 +799,7 @@ class GameUI {
    */
   newGame() {
     this.game.newGame();
+    this.currentGameMisses = 0;
 
     // Update URL with new seed
     const url = new URL(window.location);
@@ -779,6 +859,81 @@ class GameUI {
     if (normalized > 0.5) return '#ff8800';
     if (normalized > 0.25) return '#ffff00';
     return '#39ff14';
+  }
+
+  /**
+   * Show achievement notification toasts
+   */
+  showAchievementNotifications(achievements) {
+    if (!achievements || achievements.length === 0) {
+      return;
+    }
+
+    const toast = document.getElementById('achievement-toast');
+    const icon = toast.querySelector('.achievement-icon');
+    const name = toast.querySelector('.achievement-name');
+
+    // Show each achievement with delay
+    achievements.forEach((achievement, index) => {
+      setTimeout(() => {
+        icon.textContent = achievement.icon;
+        name.textContent = achievement.name;
+        toast.classList.add('show');
+
+        // Play achievement sound
+        this.soundManager.achievement();
+
+        // Hide after 3 seconds
+        setTimeout(() => {
+          toast.classList.remove('show');
+        }, 3000);
+      }, index * 3500); // Stagger multiple achievements
+    });
+  }
+
+  /**
+   * Show achievements in game over screen
+   */
+  showGameOverAchievements(newAchievements) {
+    const container = document.getElementById('achievements-unlocked');
+
+    if (!newAchievements || newAchievements.length === 0) {
+      container.innerHTML = '';
+      return;
+    }
+
+    let html = '<h3>🏆 Achievements Unlocked!</h3>';
+
+    newAchievements.forEach(achievement => {
+      html += `
+        <div class="achievement-item">
+          <div class="achievement-item-icon">${achievement.icon}</div>
+          <div class="achievement-item-text">
+            <div class="achievement-item-name">${achievement.name}</div>
+            <div class="achievement-item-description">${achievement.description}</div>
+          </div>
+        </div>
+      `;
+    });
+
+    container.innerHTML = html;
+  }
+
+  /**
+   * Toggle sound on/off
+   */
+  toggleSound() {
+    this.soundManager.toggleMute();
+    this.updateSoundButton();
+    this.soundManager.blip();
+  }
+
+  /**
+   * Update sound button text
+   */
+  updateSoundButton() {
+    const button = document.getElementById('sound-button');
+    button.textContent = this.soundManager.muted ? '🔇 SOUND' : '🔊 SOUND';
   }
 }
 
