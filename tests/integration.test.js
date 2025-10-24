@@ -70,6 +70,7 @@ describe('Browser Integration', () => {
             <button id="reset-button" class="button">RESET</button>
             <button id="new-game-button" class="button primary">NEW GAME</button>
             <button id="share-button" class="button">SHARE</button>
+            <button id="sound-button" class="button">🔊 SOUND</button>
             <button id="debug-button" class="button">SHOW FROGS</button>
           </div>
           <div id="seed-info">
@@ -80,9 +81,19 @@ describe('Browser Integration', () => {
           <div class="game-over-content" id="game-over-content">
             <h2 id="game-over-title">MISSION COMPLETE</h2>
             <div class="game-over-stats" id="game-over-stats"></div>
+            <div id="achievements-unlocked"></div>
             <div class="button-container">
               <button id="retry-button" class="button primary">RETRY LEVEL</button>
               <button id="next-level-button" class="button">NEW LEVEL</button>
+            </div>
+          </div>
+        </div>
+        <div id="achievement-toast" class="achievement-toast">
+          <div class="achievement-content">
+            <div class="achievement-icon"></div>
+            <div class="achievement-text">
+              <div class="achievement-title">Achievement Unlocked!</div>
+              <div class="achievement-name"></div>
             </div>
           </div>
         </div>
