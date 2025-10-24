@@ -58,6 +58,10 @@ describe('Browser Integration', () => {
                 <span class="powerup-icon">📡</span>
                 <span class="powerup-count" id="radar-count">0</span>
               </div>
+              <div class="powerup-item" id="powerup-mega-probe">
+                <span class="powerup-icon">🎯</span>
+                <span class="powerup-count" id="mega-probe-count">0</span>
+              </div>
             </div>
           </div>
           <div id="game-grid"></div>
@@ -203,39 +207,42 @@ describe('Browser Integration', () => {
     expect(radarCount.textContent).toBe('1');
   });
 
-  test('should show powerup on hidden tile', () => {
+  test('should NOT show powerup on hidden tile', () => {
     const powerupPos = window.gameUI.game.hiddenPowerup;
     const tile = window.gameUI.tiles.find(t => t.x === powerupPos.x && t.y === powerupPos.y);
 
     expect(tile).toBeDefined();
-    expect(tile.element.classList.contains('has-powerup')).toBe(true);
+    // Powerups are now hidden for mystery
+    expect(tile.element.classList.contains('has-powerup')).toBe(false);
   });
 
   test('should update powerup count when found', () => {
+    const initialPowerupCount = window.gameUI.game.powerups.length;
     const powerupPos = window.gameUI.game.hiddenPowerup;
     const tile = window.gameUI.tiles.find(t => t.x === powerupPos.x && t.y === powerupPos.y);
 
     // Click the powerup tile
     tile.element.click();
 
-    // Count should increase
-    const radarCount = document.getElementById('radar-count');
-    expect(radarCount.textContent).toBe('2');
+    // Total powerup count should increase (could be radar or mega-probe)
+    const finalPowerupCount = window.gameUI.game.powerups.length;
+    expect(finalPowerupCount).toBe(initialPowerupCount + 1);
   });
 
-  test('should remove powerup indicator after finding', () => {
+  test('should keep powerup hidden before and after finding', () => {
     // Reset game to get fresh powerup
     window.gameUI.resetGame();
 
     const powerupPos = window.gameUI.game.hiddenPowerup;
     const tile = window.gameUI.tiles.find(t => t.x === powerupPos.x && t.y === powerupPos.y);
 
-    expect(tile.element.classList.contains('has-powerup')).toBe(true);
+    // Powerup should be hidden before finding
+    expect(tile.element.classList.contains('has-powerup')).toBe(false);
 
     // Click to find it
     tile.element.click();
 
-    // Wait for UI update
+    // Wait for UI update - powerup should remain hidden after finding (no indicator)
     setTimeout(() => {
       expect(tile.element.classList.contains('has-powerup')).toBe(false);
     }, 100);
@@ -334,16 +341,15 @@ describe('Browser Integration', () => {
   });
 
   describe('Powerup UI Issues', () => {
-    test('should not show hidden powerup initially in debug mode', () => {
+    test('should not show hidden powerup initially', () => {
       window.gameUI.resetGame();
 
-      // Hidden powerup should not be visible without debug mode
+      // Hidden powerup should not be visible - it's a mystery!
       const powerupPos = window.gameUI.game.hiddenPowerup;
       const powerupTile = window.gameUI.tiles.find(t => t.x === powerupPos.x && t.y === powerupPos.y);
 
-      // The tile should have the has-powerup class (it's visible as a glowing tile)
-      // But it shouldn't show the actual frog
-      expect(powerupTile.element.classList.contains('has-powerup')).toBe(true);
+      // The tile should NOT have the has-powerup class (powerups are hidden for mystery)
+      expect(powerupTile.element.classList.contains('has-powerup')).toBe(false);
       expect(powerupTile.element.classList.contains('has-frog')).toBe(false);
     });
   });

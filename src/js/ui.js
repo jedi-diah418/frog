@@ -708,6 +708,9 @@ class GameUI {
    */
   resetGame() {
     this.game.reset();
+    this.megaProbeActive = false;
+    this.clearMegaProbeHighlight();
+    document.getElementById('game-grid').style.cursor = 'default';
     this.createGrid();
     this.updateUI();
   }

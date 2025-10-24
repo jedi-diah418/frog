@@ -218,7 +218,7 @@ class RadioactiveFroggies {
     if (this.hiddenPowerup && this.hiddenPowerup.x === x && this.hiddenPowerup.y === y) {
       // Randomly give either radar or mega-probe
       const powerupTypes = ['radar', 'mega-probe'];
-      const randomType = powerupTypes[Math.floor(this.rng.random() * powerupTypes.length)];
+      const randomType = powerupTypes[Math.floor(this.rng.next() * powerupTypes.length)];
       this.powerups.push(randomType);
       this.hiddenPowerup = null;
       foundPowerup = true;
@@ -304,7 +304,7 @@ class RadioactiveFroggies {
     if (this.hiddenPowerup && this.hiddenPowerup.x === x && this.hiddenPowerup.y === y) {
       // Randomly give either radar or mega-probe
       const powerupTypes = ['radar', 'mega-probe'];
-      const randomType = powerupTypes[Math.floor(this.rng.random() * powerupTypes.length)];
+      const randomType = powerupTypes[Math.floor(this.rng.next() * powerupTypes.length)];
       this.powerups.push(randomType);
       this.hiddenPowerup = null;
       foundPowerup = true;
