@@ -2,6 +2,8 @@
  * Achievement System for Radioactive Froggies
  */
 
+(function(isNode) {
+
 class AchievementManager {
   constructor() {
     this.achievements = {
@@ -105,21 +107,15 @@ class AchievementManager {
     this.loadProgress();
   }
 
-  /**
-   * Load achievement progress from localStorage
-   */
   loadProgress() {
     try {
+      if (typeof localStorage === 'undefined') return;
       const saved = localStorage.getItem('frog_achievements');
       if (saved) {
         const data = JSON.parse(saved);
-
-        // Load stats
         if (data.stats) {
           this.stats = { ...this.stats, ...data.stats };
         }
-
-        // Load unlocked achievements
         if (data.unlocked) {
           data.unlocked.forEach(id => {
             if (this.achievements[id]) {
@@ -133,104 +129,72 @@ class AchievementManager {
     }
   }
 
-  /**
-   * Save achievement progress to localStorage
-   */
   saveProgress() {
     try {
+      if (typeof localStorage === 'undefined') return;
       const unlocked = Object.keys(this.achievements)
         .filter(id => this.achievements[id].unlocked);
-
       const data = {
         stats: this.stats,
         unlocked: unlocked,
         lastUpdate: new Date().toISOString()
       };
-
       localStorage.setItem('frog_achievements', JSON.stringify(data));
     } catch (e) {
       console.error('Failed to save achievements:', e);
     }
   }
 
-  /**
-   * Check and unlock achievements based on current stats
-   * Returns array of newly unlocked achievements
-   */
   checkAchievements() {
     const newlyUnlocked = [];
-
     Object.values(this.achievements).forEach(achievement => {
       if (!achievement.unlocked && achievement.check(this.stats)) {
         achievement.unlocked = true;
         newlyUnlocked.push(achievement);
       }
     });
-
     if (newlyUnlocked.length > 0) {
       this.saveProgress();
     }
-
     return newlyUnlocked;
   }
 
-  /**
-   * Record a game completion
-   */
   recordGame(won, moves, totalProbes, frogsCaught, wasPerfect = false) {
     this.stats.totalGames++;
-
     if (won) {
       this.stats.totalWins++;
       this.stats.currentWinStreak++;
       this.stats.maxWinStreak = Math.max(this.stats.maxWinStreak, this.stats.currentWinStreak);
-
-      // Track best moves
       if (moves < this.stats.bestMoves) {
         this.stats.bestMoves = moves;
       }
-
-      // Track accuracy (catches / total probes)
       const accuracy = (frogsCaught / totalProbes) * 100;
       if (accuracy > this.stats.bestAccuracy) {
         this.stats.bestAccuracy = Math.round(accuracy);
       }
-
-      // Track perfect games
       if (wasPerfect) {
         this.stats.perfectGames++;
       }
     } else {
       this.stats.currentWinStreak = 0;
     }
-
     this.stats.totalFrogsCaught += frogsCaught;
-
     this.saveProgress();
     return this.checkAchievements();
   }
 
-  /**
-   * Record powerup usage
-   */
   recordPowerupUsed() {
     this.stats.powerupsUsed++;
     this.saveProgress();
     return this.checkAchievements();
   }
 
-  /**
-   * Record powerup found
-   */
   recordPowerupFound() {
     this.stats.powerupsFound++;
     this.saveProgress();
     return this.checkAchievements();
   }
 
-  /**
-   * Record mega-probe capture
-   */
   recordMegaProbeCapture(count) {
     if (count > this.stats.maxMegaProbeCapture) {
       this.stats.maxMegaProbeCapture = count;
@@ -240,41 +204,28 @@ class AchievementManager {
     return [];
   }
 
-  /**
-   * Record first probe catch
-   */
   recordFirstProbeCatch() {
     this.stats.firstProbeCatches++;
     this.saveProgress();
     return this.checkAchievements();
   }
 
-  /**
-   * Get all achievements
-   */
   getAllAchievements() {
     return Object.values(this.achievements);
   }
 
-  /**
-   * Get unlocked achievements
-   */
   getUnlockedAchievements() {
     return Object.values(this.achievements).filter(a => a.unlocked);
   }
 
-  /**
-   * Get stats
-   */
   getStats() {
     return { ...this.stats };
   }
 
-  /**
-   * Reset all progress (for testing)
-   */
   reset() {
-    localStorage.removeItem('frog_achievements');
+    if (typeof localStorage !== 'undefined') {
+      localStorage.removeItem('frog_achievements');
+    }
     this.stats = {
       totalGames: 0,
       totalWins: 0,
@@ -292,3 +243,12 @@ class AchievementManager {
     Object.values(this.achievements).forEach(a => a.unlocked = false);
   }
 }
+
+// Export for Node.js or browser
+if (isNode) {
+  module.exports = AchievementManager;
+} else {
+  window.AchievementManager = AchievementManager;
+}
+
+})(typeof module !== 'undefined' && typeof module.exports !== 'undefined' && typeof require === 'function');

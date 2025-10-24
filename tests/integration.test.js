@@ -101,11 +101,15 @@ describe('Browser Integration', () => {
 
     // Manually load and execute the JavaScript files in order
     const seededRandomJS = fs.readFileSync(path.join(__dirname, '../src/js/seededRandom.js'), 'utf-8');
+    const achievementsJS = fs.readFileSync(path.join(__dirname, '../src/js/achievements.js'), 'utf-8');
+    const soundsJS = fs.readFileSync(path.join(__dirname, '../src/js/sounds.js'), 'utf-8');
     const radioactiveFroggiesJS = fs.readFileSync(path.join(__dirname, '../src/js/radioactiveFroggies.js'), 'utf-8');
     const uiJS = fs.readFileSync(path.join(__dirname, '../src/js/ui.js'), 'utf-8');
 
     // Execute scripts in the window context
     window.eval(seededRandomJS);
+    window.eval(achievementsJS);
+    window.eval(soundsJS);
     window.eval(radioactiveFroggiesJS);
     window.eval(uiJS);
 
