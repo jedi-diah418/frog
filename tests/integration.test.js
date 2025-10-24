@@ -43,14 +43,6 @@ describe('Browser Integration', () => {
               <div class="info-value" id="moves-remaining">50</div>
             </div>
           </div>
-          <div id="radiation-meter">
-            <h3>RADIATION DETECTOR</h3>
-            <div class="meter-container">
-              <div class="meter-fill" id="meter-fill"></div>
-              <div class="meter-text" id="meter-text">STANDBY</div>
-            </div>
-            <div class="trend-indicator" id="trend-indicator"></div>
-          </div>
           <div id="powerup-inventory">
             <h3>POWERUPS</h3>
             <div id="powerup-list">
