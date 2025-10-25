@@ -199,7 +199,7 @@ class GameUI {
 
         // Play geiger click based on radiation level
         const maxRadiation = this.game.FROG_COUNT * (this.game.RADIATION_RANGE + 1);
-        const intensity = result.finalRadiation / maxRadiation;
+        const intensity = result.initialRadiation / maxRadiation;
         this.soundManager.geigerClick(intensity);
 
         // Don't mark tiles as probed - let them look normal
@@ -212,11 +212,13 @@ class GameUI {
         }, 600);
 
         // Show initial radiation (before frogs hopped)
-        this.showRadiationIndicators(x, y, result.initialRadiation, true);
+        // Note: Frogs have already hopped in game logic, but we show pre-hop radiation first
+        this.showRadiationIndicators(x, y, result.initialSurroundingRadiation, true);
 
         // After initial animation, show final radiation (after frogs hopped)
         setTimeout(() => {
-          this.showRadiationIndicators(x, y, result.finalRadiation, false);
+          // Frogs have already hopped in game logic, just show the post-hop radiation
+          this.showRadiationIndicators(x, y, result.finalSurroundingRadiation, false);
 
           // Update frog display after both animations
           this.updateFrogDisplay();
@@ -276,8 +278,12 @@ class GameUI {
 
   /**
    * Show radiation indicators on surrounding tiles
+   * @param {number} probeX - X coordinate of probe
+   * @param {number} probeY - Y coordinate of probe
+   * @param {Object} radiationMap - Map of {x,y} -> radiation value
+   * @param {boolean} isInitial - Whether this is the initial scan (before frogs hop)
    */
-  showRadiationIndicators(probeX, probeY, centerRadiation, isInitial) {
+  showRadiationIndicators(probeX, probeY, radiationMap, isInitial) {
     // Define all 8 surrounding directions plus orthogonal distance-2 tiles
     const directions = [
       // Adjacent tiles (distance 1)
@@ -308,15 +314,14 @@ class GameUI {
       // Find the tile
       const tile = this.tiles.find(t => t.x === x && t.y === y);
 
-      // Skip tiles that are caught or already probed
-      if (!tile ||
-          tile.element.classList.contains('caught') ||
-          this.game.isProbed(x, y)) {
+      // Skip tiles that are caught (but NOT skipping probed tiles anymore)
+      if (!tile || tile.element.classList.contains('caught')) {
         return;
       }
 
-      // Calculate radiation at this position
-      const radiation = this.game.calculateRadiation(x, y);
+      // Get radiation from the precalculated map
+      const key = `${x},${y}`;
+      const radiation = radiationMap[key] !== undefined ? radiationMap[key] : 0;
 
       // Always show indicators, even for zero radiation (for feedback)
       // Calculate normalized radiation for this tile
@@ -330,9 +335,8 @@ class GameUI {
       const delay = distance * 50; // 50ms per tile distance for ripple effect
 
       setTimeout(() => {
-        // Double-check tile hasn't been probed while we were waiting
-        if (this.game.isProbed(x, y) ||
-            tile.element.classList.contains('caught')) {
+        // Double-check tile hasn't been caught while we were waiting
+        if (tile.element.classList.contains('caught')) {
           return;
         }
 

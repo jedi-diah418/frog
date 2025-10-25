@@ -150,6 +150,45 @@ class RadioactiveFroggies {
   }
 
   /**
+   * Calculate radiation at all surrounding tiles
+   * Returns a map of {x,y} -> radiation value
+   */
+  calculateSurroundingRadiation(probeX, probeY) {
+    const radiationMap = {};
+
+    // Define all surrounding directions including distance-2 orthogonal
+    const directions = [
+      // Adjacent tiles (distance 1)
+      { dx: -1, dy: 0 },  // left
+      { dx: 1, dy: 0 },   // right
+      { dx: 0, dy: -1 },  // up
+      { dx: 0, dy: 1 },   // down
+      { dx: -1, dy: -1 }, // up-left
+      { dx: 1, dy: -1 },  // up-right
+      { dx: -1, dy: 1 },  // down-left
+      { dx: 1, dy: 1 },   // down-right
+      // Distance 2 orthogonal
+      { dx: -2, dy: 0 },  // far left
+      { dx: 2, dy: 0 },   // far right
+      { dx: 0, dy: -2 },  // far up
+      { dx: 0, dy: 2 }    // far down
+    ];
+
+    directions.forEach(({ dx, dy }) => {
+      const x = probeX + dx;
+      const y = probeY + dy;
+
+      // Check if position is valid
+      if (x >= 0 && x < this.GRID_SIZE && y >= 0 && y < this.GRID_SIZE) {
+        const key = `${x},${y}`;
+        radiationMap[key] = this.calculateRadiation(x, y);
+      }
+    });
+
+    return radiationMap;
+  }
+
+  /**
    * Check if a frog is at the given position
    */
   isFrogAt(x, y) {
@@ -287,15 +326,20 @@ class RadioactiveFroggies {
     } else {
       // No frog here, calculate radiation BEFORE frogs hop
       const initialRadiation = this.calculateRadiation(x, y);
+
+      // Calculate radiation at surrounding tiles BEFORE frogs hop
+      const initialSurroundingRadiation = this.calculateSurroundingRadiation(x, y);
+
       this.previousRadiation = this.lastRadiation;
       this.probed.push({ x, y });
       this.moves++;
 
-      // Make nearby frogs hop away
+      // Make nearby frogs hop away (but UI will animate this after showing initial scan)
       this.makeFrogsHop(x, y);
 
       // Calculate radiation AFTER frogs hop
       const finalRadiation = this.calculateRadiation(x, y);
+      const finalSurroundingRadiation = this.calculateSurroundingRadiation(x, y);
       this.lastRadiation = finalRadiation;
 
       // Check lose condition
@@ -309,6 +353,8 @@ class RadioactiveFroggies {
         radiation: finalRadiation,
         initialRadiation: initialRadiation,
         finalRadiation: finalRadiation,
+        initialSurroundingRadiation: initialSurroundingRadiation,
+        finalSurroundingRadiation: finalSurroundingRadiation,
         foundPowerup: foundPowerup,
         message: finalRadiation > 0 ? 'Detecting radiation...' : 'No radiation detected',
         gameOver: this.gameOver && !this.gameWon
