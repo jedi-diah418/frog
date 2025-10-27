@@ -215,13 +215,15 @@ class GameUI {
         // Note: Frogs have already hopped in game logic, but we show pre-hop radiation first
         this.showRadiationIndicators(x, y, result.initialSurroundingRadiation, true);
 
+        // Update frog display between readings to show movement
+        setTimeout(() => {
+          this.updateFrogDisplay();
+        }, 600);
+
         // After initial animation, show final radiation (after frogs hopped)
         setTimeout(() => {
           // Frogs have already hopped in game logic, just show the post-hop radiation
           this.showRadiationIndicators(x, y, result.finalSurroundingRadiation, false);
-
-          // Update frog display after both animations
-          this.updateFrogDisplay();
         }, 1000);
       }
 

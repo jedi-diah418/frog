@@ -255,9 +255,9 @@ class RadioactiveFroggies {
           newY = frog.y;
         }
 
-        newFrogPositions.push({ x: newX, y: newY });
+        newFrogPositions.push({ x: newX, y: newY, type: frog.type });
       } else {
-        newFrogPositions.push({ x: frog.x, y: frog.y });
+        newFrogPositions.push({ x: frog.x, y: frog.y, type: frog.type });
       }
     }
 
@@ -518,7 +518,7 @@ class RadioactiveFroggies {
         newY = frog.y;
       }
 
-      newFrogPositions.push({ x: newX, y: newY });
+      newFrogPositions.push({ x: newX, y: newY, type: frog.type });
     }
 
     this.frogs = newFrogPositions;
